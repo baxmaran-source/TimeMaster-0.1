@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TimeMaster Pro - Industry Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .active-project { border-left: 4px solid #3b82f6; background-color: #f8fafc; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .color-swatch { width: 24px; height: 24px; border-radius: 6px; cursor: pointer; transition: transform 0.1s; border: 2px solid transparent; }
+        .color-swatch:hover { transform: scale(1.1); }
+        .color-swatch.active { border-color: #000; }
+        input[type="color"] { -webkit-appearance: none; border: none; width: 24px; height: 24px; border-radius: 6px; cursor: pointer; background: none; padding: 0; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 font-sans">
+
+    <div class="max-w-6xl mx-auto p-4 lg:p-8">
+        <!-- Header -->
+        <header class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                    <span class="bg-blue-600 text-white px-2 py-1 rounded-lg">TM</span>
+                    TimeMaster <span class="text-blue-600 font-light">Pro</span>
+                </h1>
+                <p id="txt-subtitle" class="text-slate-500 text-xs font-medium uppercase tracking-widest mt-1">Priemyselné časové štúdie</p>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <select id="lang-selector" onchange="changeLanguage(this.value)" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none cursor-pointer">
+                    <option value="sk">🇸🇰 SK</option>
+                    <option value="en">🇬🇧 EN</option>
+                </select>
+
+                <button onclick="openProjectModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold transition flex items-center gap-2 text-sm shadow-lg shadow-blue-200">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                    <span id="txt-new-project">Nový Projekt</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Sidebar -->
+            <div class="lg:col-span-3 order-2 lg:order-1">
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                    <h2 id="txt-my-projects" class="font-bold text-sm mb-4 text-slate-400 uppercase tracking-widest">Moje Projekty</h2>
+                    <div id="project-list" class="space-y-2 max-h-[60vh] overflow-y-auto no-scrollbar"></div>
+                </div>
+            </div>
+
+            <!-- Main Area -->
+            <div class="lg:col-span-9 order-1 lg:order-2 space-y-6">
+                <!-- Evaluation Screen -->
+                <div id="analysis-area" class="bg-white rounded-3xl p-6 lg:p-10 border border-blue-100 shadow-xl hidden">
+                    <div class="flex justify-between items-center mb-8">
+                        <h2 class="text-2xl font-black text-slate-900" id="analysis-project-title">Vyhodnotenie</h2>
+                        <div class="flex gap-2">
+                            <button onclick="exportCurrentToPDF()" class="p-2 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition" title="Exportovať do PDF">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                            </button>
+                            <button onclick="closeAnalysis()" class="p-2 bg-slate-100 rounded-full hover:bg-slate-200 transition">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+                        <div class="relative h-64 sm:h-80"><canvas id="chart-pie"></canvas></div>
+                        <div id="analysis-stats" class="space-y-3"></div>
+                    </div>
+                    <div class="mt-12">
+                        <h3 id="txt-linear-viz" class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Lineárna Vizualizácia Aktivít</h3>
+                        <div id="timeline-container" class="h-12 w-full bg-slate-100 rounded-xl flex overflow-hidden border border-slate-200 shadow-inner"></div>
+                    </div>
+                </div>
+
+                <!-- Timer Interface -->
+                <div id="main-timer-area" class="bg-white rounded-3xl p-6 lg:p-8 border border-slate-100 shadow-xl hidden">
+                    <div class="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
+                        <div>
+                            <h2 id="active-project-name" class="text-3xl font-black text-slate-900 leading-none">Projekt</h2>
+                            <p id="active-project-desc" class="text-slate-400 text-sm mt-2 max-w-md"></p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="showAnalysis()" class="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-800 transition flex items-center gap-2">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+                                <span id="txt-evaluate">VYHODNOTIŤ</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Display -->
+                    <div class="bg-slate-900 rounded-[2rem] p-8 lg:p-12 text-center relative overflow-hidden shadow-2xl mb-6">
+                        <div id="total-timer-display" class="absolute top-6 right-8 mono text-blue-400/40 text-lg font-bold">00:00.0</div>
+                        <span id="current-category-label" class="text-[10px] text-blue-500 font-black uppercase tracking-[0.4em] mb-4 block">Pripravený</span>
+                        <div id="timer-display" class="mono text-7xl sm:text-9xl font-bold text-white tabular-nums tracking-tighter leading-none">00:00.0</div>
+                    </div>
+
+                    <div class="flex justify-center gap-4 -mt-10 mb-10 relative z-20">
+                        <button id="pause-btn" onclick="pauseTimer()" class="hidden bg-amber-500 text-white px-10 py-3 rounded-2xl font-black shadow-xl hover:bg-amber-600 transition">PAUZA</button>
+                        <button id="txt-reset" onclick="resetAllTimers()" class="bg-white text-slate-400 px-10 py-3 rounded-2xl font-black border border-slate-200 transition">RESET</button>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                        <div>
+                            <h3 id="txt-select-cat" class="text-[10px] font-black text-slate-400 uppercase mb-4">Vyberte kategóriu</h3>
+                            <div id="category-chips" class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-8"></div>
+                            
+                            <!-- Custom Category Management -->
+                            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                                <p id="txt-edit-cat" class="text-[10px] font-black text-slate-400 uppercase mb-4">Upraviť kategórie</p>
+                                <div class="flex flex-col gap-3 mb-4">
+                                    <div class="flex flex-wrap gap-2" id="fixed-colors-grid"></div>
+                                    <div class="flex gap-2">
+                                        <input id="new-category-input" type="text" placeholder="..." class="flex-1 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none">
+                                        <button id="txt-add-btn" onclick="addCategory()" class="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold uppercase">Pridať</button>
+                                    </div>
+                                </div>
+                                <div id="category-management-list" class="space-y-2 max-h-40 overflow-y-auto no-scrollbar"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 id="txt-history-label" class="text-[10px] font-black text-slate-400 uppercase">Chronológia merania</h3>
+                                <button id="txt-clear-btn" onclick="clearCurrentProjectLaps()" class="text-[10px] text-red-500 font-black uppercase">Vymazať</button>
+                            </div>
+                            <div id="laps-list" class="space-y-3 max-h-[500px] overflow-y-auto no-scrollbar"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div id="empty-state" class="bg-white rounded-[3rem] p-16 text-center border border-slate-200 shadow-sm">
+                    <h3 id="txt-empty-title" class="text-2xl font-black mb-10">Vyberte projekt</h3>
+                    <button id="txt-start-new" onclick="openProjectModal()" class="bg-slate-900 text-white px-10 py-4 rounded-2xl font-black uppercase shadow-2xl">Začať nový projekt</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Modal -->
+    <div id="project-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-[2rem] w-full max-w-md p-8 shadow-2xl">
+            <h2 id="txt-modal-title" class="text-2xl font-black mb-6">Nový Projekt</h2>
+            <div class="space-y-4">
+                <input id="modal-project-name" type="text" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 outline-none font-bold" placeholder="Názov projektu">
+                
+                <div class="space-y-2">
+                    <label id="txt-project-type" class="text-[10px] font-black text-slate-400 uppercase">Typ projektu</label>
+                    <select id="modal-project-type" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 outline-none text-sm font-bold appearance-none">
+                        <option value="custom" id="opt-custom">Vlastný / Prázdny</option>
+                        <option value="machine" id="opt-machine">Časová štúdia: Stroj</option>
+                        <option value="human" id="opt-human">Časová štúdia: Človek</option>
+                    </select>
+                </div>
+
+                <textarea id="modal-project-desc" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 outline-none text-sm h-24" placeholder="Popis projektu..."></textarea>
+                
+                <div class="flex gap-3 pt-4">
+                    <button id="txt-modal-cancel" onclick="closeProjectModal()" class="flex-1 bg-slate-100 py-4 rounded-2xl font-black text-slate-500 uppercase">Zrušiť</button>
+                    <button id="txt-modal-create" onclick="createNewProject()" class="flex-1 bg-blue-600 text-white font-black py-4 rounded-2xl shadow-lg uppercase">Vytvoriť</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.jsPDF = window.jspdf.jsPDF;
+
+        const FIXED_COLORS = [
+            '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', 
+            '#ec4899', '#06b6d4', '#f97316', '#64748b', '#2dd4bf',
+            '#84cc16', '#a855f7', '#fb7185', '#0ea5e9', '#475569'
+        ];
+
+        const translations = {
+            sk: {
+                subtitle: "Priemyselné časové štúdie",
+                newProject: "Nový Projekt",
+                myProjects: "Moje Projekty",
+                evaluate: "VYHODNOTIŤ",
+                reset: "RESET",
+                ready: "Pripravený",
+                pause: "PAUZA",
+                selectCat: "Vyberte kategóriu",
+                editCat: "Upraviť kategórie",
+                addBtn: "Pridať",
+                history: "Chronológia merania",
+                clearBtn: "Vymazať",
+                emptyTitle: "Vyberte projekt",
+                startNew: "Začať nový projekt",
+                modalTitle: "Nový Projekt",
+                projectType: "Typ projektu",
+                optCustom: "Vlastný / Prázdny",
+                optMachine: "Časová štúdia: Stroj",
+                optHuman: "Časová štúdia: Človek",
+                modalName: "Názov projektu",
+                modalDesc: "Popis projektu...",
+                modalCancel: "Zrušiť",
+                modalCreate: "Vytvoriť",
+                confirmClear: "Vymazať celú históriu?",
+                needRecord: "Chýbajú dáta pre analýzu.",
+                genAt: "VYGENEROVANÉ",
+                catProduction: "Výroba",
+                catLoading: "Nakladanie",
+                catUnloading: "Vykladanie",
+                catLoadUnload: "Nakladanie/Vykladanie",
+                catFailure: "Porucha",
+                catChangeover: "Pretypovanie",
+                catToolChange: "Výmena plátku",
+                catMeasurement: "Meranie",
+                catStop: "Stop",
+                catWalking: "Chodenie",
+                catSetup: "Nastavovanie",
+                catDefault: "Všeobecné",
+                tableDate: "Dátum",
+                tableCat: "Kategória",
+                tableDur: "Trvanie",
+                tableTime: "Čas",
+                summaryTitle: "Súhrn rozdelenia času"
+            },
+            en: {
+                subtitle: "Industrial Time Studies",
+                newProject: "New Project",
+                myProjects: "My Projects",
+                evaluate: "EVALUATE",
+                reset: "RESET",
+                ready: "Ready",
+                pause: "PAUSE",
+                selectCat: "Select category to start",
+                editCat: "Edit categories",
+                addBtn: "Add",
+                history: "Measurement Chronology",
+                clearBtn: "Clear",
+                emptyTitle: "Select a project",
+                startNew: "Start new project",
+                modalTitle: "New Project",
+                projectType: "Project Type",
+                optCustom: "Custom / Own",
+                optMachine: "Time Study: Machine",
+                optHuman: "Time Study: Human",
+                modalName: "Project Name",
+                modalDesc: "Description...",
+                modalCancel: "Cancel",
+                modalCreate: "Create",
+                confirmClear: "Clear all data?",
+                needRecord: "Need records to evaluate.",
+                genAt: "GENERATED AT",
+                catProduction: "Production",
+                catLoading: "Loading",
+                catUnloading: "Unloading",
+                catLoadUnload: "Load/Unload",
+                catFailure: "Failure",
+                catChangeover: "Changeover",
+                catToolChange: "Tool Change",
+                catMeasurement: "Measurement",
+                catStop: "Stop",
+                catWalking: "Walking",
+                catSetup: "Setup",
+                catDefault: "General",
+                tableDate: "Date",
+                tableCat: "Category",
+                tableDur: "Duration",
+                tableTime: "Time",
+                summaryTitle: "Time Allocation Summary"
+            }
+        };
+
+        let currentLang = localStorage.getItem('tm_pro_lang') || 'sk';
+        let projects = JSON.parse(localStorage.getItem('tm_pro_projects')) || [];
+        let activeProjectId = null;
+        let timerInterval = null;
+        let lapStartTime = null, totalStartTime = null;
+        let elapsedLapTime = 0, elapsedTotalTime = 0;
+        let isRunning = false;
+        let activeCategory = null;
+        let pieChart = null;
+        let selectedColor = FIXED_COLORS[0];
+
+        function init() {
+            document.getElementById('lang-selector').value = currentLang;
+            applyTranslations();
+            renderProjectList();
+            renderColorGrid();
+            updateUI();
+        }
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('tm_pro_lang', lang);
+            applyTranslations();
+            renderProjectList();
+            if (activeProjectId) {
+                renderCategories();
+                renderLaps();
+            }
+        }
+
+        function applyTranslations() {
+            const t = translations[currentLang] || translations['sk'];
+            document.getElementById('txt-subtitle').innerText = t.subtitle;
+            document.getElementById('txt-new-project').innerText = t.newProject;
+            document.getElementById('txt-my-projects').innerText = t.myProjects;
+            document.getElementById('txt-evaluate').innerText = t.evaluate;
+            document.getElementById('txt-reset').innerText = t.reset;
+            document.getElementById('txt-select-cat').innerText = t.selectCat;
+            document.getElementById('txt-edit-cat').innerText = t.editCat;
+            document.getElementById('txt-add-btn').innerText = t.addBtn;
+            document.getElementById('txt-history-label').innerText = t.history;
+            document.getElementById('txt-clear-btn').innerText = t.clearBtn;
+            document.getElementById('txt-empty-title').innerText = t.emptyTitle;
+            document.getElementById('txt-start-new').innerText = t.startNew;
+            document.getElementById('txt-modal-title').innerText = t.modalTitle;
+            document.getElementById('txt-project-type').innerText = t.projectType;
+            document.getElementById('opt-custom').innerText = t.optCustom;
+            document.getElementById('opt-machine').innerText = t.optMachine;
+            document.getElementById('opt-human').innerText = t.optHuman;
+            document.getElementById('modal-project-name').placeholder = t.modalName;
+            document.getElementById('modal-project-desc').placeholder = t.modalDesc;
+            document.getElementById('txt-modal-cancel').innerText = t.modalCancel;
+            document.getElementById('txt-modal-create').innerText = t.modalCreate;
+            document.getElementById('pause-btn').innerText = t.pause;
+        }
+
+        function renderColorGrid() {
+            const grid = document.getElementById('fixed-colors-grid');
+            grid.innerHTML = FIXED_COLORS.map(c => `
+                <div class="color-swatch ${c === selectedColor ? 'active' : ''}" 
+                     style="background-color: ${c}" 
+                     onclick="selectColor('${c}', this)"></div>
+            `).join('');
+            
+            const customDiv = document.createElement('div');
+            customDiv.className = 'flex items-center gap-1 border border-slate-200 rounded-lg px-1 bg-white';
+            customDiv.innerHTML = `<input type="color" id="custom-picker" onchange="selectColor(this.value, null)">`;
+            grid.appendChild(customDiv);
+        }
+
+        function selectColor(color, el) {
+            selectedColor = color;
+            document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+            if (el) el.classList.add('active');
+        }
+
+        function openProjectModal() { document.getElementById('project-modal').classList.replace('hidden', 'flex'); }
+        function closeProjectModal() { document.getElementById('project-modal').classList.replace('flex', 'hidden'); }
+
+        function createNewProject() {
+            const t = translations[currentLang] || translations['sk'];
+            const name = document.getElementById('modal-project-name').value.trim();
+            const type = document.getElementById('modal-project-type').value;
+            if (!name) return;
+
+            let initialCats = [];
+            if (type === 'machine') {
+                initialCats = [
+                    { name: t.catProduction, color: '#10b981' },
+                    { name: t.catLoading, color: '#3b82f6' },
+                    { name: t.catUnloading, color: '#0ea5e9' },
+                    { name: t.catFailure, color: '#ef4444' },
+                    { name: t.catChangeover, color: '#f59e0b' },
+                    { name: t.catToolChange, color: '#8b5cf6' },
+                    { name: t.catMeasurement, color: '#64748b' },
+                    { name: t.catStop, color: '#000000' }
+                ];
+            } else if (type === 'human') {
+                initialCats = [
+                    { name: t.catLoading, color: '#3b82f6' },
+                    { name: t.catUnloading, color: '#0ea5e9' },
+                    { name: t.catLoadUnload, color: '#8b5cf6' },
+                    { name: t.catWalking, color: '#2dd4bf' },
+                    { name: t.catMeasurement, color: '#64748b' },
+                    { name: t.catSetup, color: '#f59e0b' }
+                ];
+            } else {
+                initialCats = [{ name: t.catDefault, color: '#3b82f6' }];
+            }
+
+            const newProject = {
+                id: Date.now().toString(),
+                name,
+                desc: document.getElementById('modal-project-desc').value.trim() || '',
+                categories: initialCats,
+                laps: []
+            };
+            projects.push(newProject);
+            saveData(); renderProjectList(); setActiveProject(newProject.id); closeProjectModal();
+        }
+
+        function setActiveProject(id) {
+            if (isRunning) resetAllTimers();
+            activeProjectId = id;
+            closeAnalysis();
+            renderProjectList(); updateUI(); renderCategories(); renderLaps();
+        }
+
+        function formatTime(ms) {
+            const m = Math.floor(ms / 60000);
+            const s = Math.floor((ms % 60000) / 1000);
+            const t = Math.floor((ms % 1000) / 100);
+            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}.${t}`;
+        }
+
+        function startTimerWithCategory(catName) {
+            const project = projects.find(p => p.id === activeProjectId);
+            const cat = project.categories.find(c => c.name === catName);
+
+            if (isRunning) saveLap(activeCategory.name);
+
+            activeCategory = cat;
+            document.getElementById('current-category-label').innerText = cat.name;
+            document.getElementById('current-category-label').style.color = cat.color;
+
+            if (!isRunning) {
+                isRunning = true;
+                lapStartTime = Date.now() - elapsedLapTime;
+                totalStartTime = Date.now() - elapsedTotalTime;
+                timerInterval = setInterval(updateDisplay, 100);
+                document.getElementById('pause-btn').classList.remove('hidden');
+            } else {
+                lapStartTime = Date.now();
+                elapsedLapTime = 0;
+            }
+        }
+
+        function updateDisplay() {
+            const now = Date.now();
+            elapsedLapTime = now - lapStartTime;
+            elapsedTotalTime = now - totalStartTime;
+            document.getElementById('timer-display').innerText = formatTime(elapsedLapTime);
+            document.getElementById('total-timer-display').innerText = formatTime(elapsedTotalTime);
+        }
+
+        function pauseTimer() {
+            if (!isRunning) return;
+            saveLap(activeCategory.name);
+            isRunning = false; clearInterval(timerInterval);
+            document.getElementById('pause-btn').classList.add('hidden');
+            document.getElementById('current-category-label').innerText = translations[currentLang].pause;
+            document.getElementById('current-category-label').style.color = "#94a3b8";
+        }
+
+        function resetAllTimers() {
+            isRunning = false; clearInterval(timerInterval);
+            elapsedLapTime = 0; elapsedTotalTime = 0;
+            document.getElementById('timer-display').innerText = "00:00.0";
+            document.getElementById('total-timer-display').innerText = "00:00.0";
+            document.getElementById('pause-btn').classList.add('hidden');
+            document.getElementById('current-category-label').innerText = translations[currentLang].ready;
+        }
+
+        function saveLap(catName) {
+            const now = new Date();
+            const project = projects.find(p => p.id === activeProjectId);
+            const cat = project.categories.find(c => c.name === catName);
+            const lap = {
+                id: Date.now(),
+                time: elapsedLapTime,
+                timeFormatted: formatTime(elapsedLapTime),
+                category: catName,
+                color: cat ? cat.color : '#cbd5e1',
+                timestamp: now.toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+                date: now.toLocaleDateString('sk-SK')
+            };
+            project.laps.push(lap);
+            saveData(); renderLaps(); renderProjectList();
+        }
+
+        function renderCategories() {
+            const container = document.getElementById('category-chips');
+            const mgmt = document.getElementById('category-management-list');
+            const project = projects.find(p => p.id === activeProjectId);
+            
+            container.innerHTML = project.categories.map(cat => `
+                <button onclick="startTimerWithCategory('${cat.name}')" 
+                        style="border-color: ${cat.color}; color: ${cat.color}; background: ${cat.color}08"
+                        class="p-4 border-2 rounded-2xl text-xs font-black transition hover:scale-105 active:scale-95 shadow-sm">
+                    ${cat.name.toUpperCase()}
+                </button>
+            `).join('');
+
+            mgmt.innerHTML = project.categories.map(cat => `
+                <div class="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <div class="w-3 h-3 rounded-full" style="background-color: ${cat.color}"></div>
+                        <span class="text-xs font-bold text-slate-700">${cat.name}</span>
+                    </div>
+                    <button onclick="removeCategory('${cat.name}')" class="text-slate-300 hover:text-red-500">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function addCategory() {
+            const input = document.getElementById('new-category-input');
+            const name = input.value.trim();
+            if (!name || !activeProjectId) return;
+            const p = projects.find(x => x.id === activeProjectId);
+            if (!p.categories.find(c => c.name === name)) {
+                p.categories.push({ name, color: selectedColor });
+                saveData(); renderCategories();
+            }
+            input.value = '';
+        }
+
+        function removeCategory(name) {
+            const p = projects.find(x => x.id === activeProjectId);
+            p.categories = p.categories.filter(c => c.name !== name);
+            saveData(); renderCategories();
+        }
+
+        function renderLaps() {
+            const container = document.getElementById('laps-list');
+            const project = projects.find(p => p.id === activeProjectId);
+            if (!project.laps.length) { container.innerHTML = `<div class="py-10 text-center text-slate-300 italic text-xs">Bez záznamov</div>`; return; }
+            container.innerHTML = [...project.laps].reverse().map(lap => `
+                <div class="bg-white p-4 rounded-2xl border border-slate-100 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-1.5 h-10 rounded-full" style="background-color: ${lap.color}"></div>
+                        <div>
+                            <span class="text-[9px] font-black uppercase" style="color: ${lap.color}">${lap.category}</span>
+                            <div class="mono font-bold text-lg text-slate-800">${lap.timeFormatted}</div>
+                        </div>
+                    </div>
+                    <div class="text-[9px] text-slate-400 font-bold text-right">${lap.date}<br><span class="text-slate-600">${lap.timestamp}</span></div>
+                </div>
+            `).join('');
+        }
+
+        function renderProjectList() {
+            const list = document.getElementById('project-list');
+            list.innerHTML = projects.map(p => `
+                <button onclick="setActiveProject('${p.id}')" class="w-full text-left p-4 rounded-xl transition border border-transparent ${activeProjectId === p.id ? 'active-project shadow-md' : 'hover:bg-slate-50'}">
+                    <div class="font-black text-sm text-slate-900 truncate">${p.name}</div>
+                    <div class="flex justify-between items-center mt-1">
+                        <div class="text-[9px] text-slate-400 font-bold uppercase">${p.laps.length} záznamov</div>
+                        <div class="mono text-[10px] text-blue-600 font-bold">${formatTime(p.laps.reduce((a, l) => a + l.time, 0))}</div>
+                    </div>
+                </button>
+            `).join('');
+        }
+
+        function showAnalysis() {
+            const project = projects.find(p => p.id === activeProjectId);
+            if (!project.laps.length) { alert(translations[currentLang].needRecord); return; }
+            document.getElementById('analysis-area').classList.remove('hidden');
+            document.getElementById('analysis-project-title').innerText = project.name;
+            const dataMap = {};
+            let totalMs = 0;
+            project.laps.forEach(l => {
+                dataMap[l.category] = (dataMap[l.category] || { time: 0, color: l.color });
+                dataMap[l.category].time += l.time;
+                totalMs += l.time;
+            });
+            const labels = Object.keys(dataMap);
+            const values = labels.map(l => dataMap[l].time);
+            const colors = labels.map(l => dataMap[l].color);
+            if (pieChart) pieChart.destroy();
+            pieChart = new Chart(document.getElementById('chart-pie').getContext('2d'), {
+                type: 'doughnut',
+                data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }] },
+                options: { cutout: '75%', plugins: { legend: { display: false } } }
+            });
+            document.getElementById('analysis-stats').innerHTML = labels.map((l, idx) => `
+                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full" style="background-color: ${colors[idx]}"></div>
+                        <span class="text-xs font-bold">${l}</span>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-xs font-bold">${formatTime(values[idx])}</div>
+                        <div class="text-[9px] font-black text-slate-400">${((values[idx]/totalMs)*100).toFixed(1)}%</div>
+                    </div>
+                </div>
+            `).join('');
+            const timeline = document.getElementById('timeline-container');
+            timeline.innerHTML = project.laps.map(lap => `
+                <div style="width: ${(lap.time/totalMs)*100}%; background-color: ${lap.color}" class="h-full border-r border-white/10"></div>
+            `).join('');
+            document.getElementById('main-timer-area').classList.add('hidden');
+        }
+
+        function closeAnalysis() {
+            document.getElementById('analysis-area').classList.add('hidden');
+            if (activeProjectId) document.getElementById('main-timer-area').classList.remove('hidden');
+        }
+
+        function clearCurrentProjectLaps() {
+            if (confirm(translations[currentLang].confirmClear)) {
+                projects.find(p => p.id === activeProjectId).laps = [];
+                saveData(); renderLaps(); renderProjectList();
+            }
+        }
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : { r: 0, g: 0, b: 0 };
+        }
+
+        async function exportCurrentToPDF() {
+            const project = projects.find(p => p.id === activeProjectId);
+            if (!project || project.laps.length === 0) return alert(translations[currentLang].needRecord);
+
+            const doc = new jsPDF();
+            const t = translations[currentLang] || translations['sk'];
+            
+            // Header
+            doc.setFontSize(22);
+            doc.setTextColor(30, 41, 59);
+            doc.text(project.name, 14, 25);
+            doc.setFontSize(10);
+            doc.setTextColor(100, 116, 139);
+            doc.text(`${t.genAt}: ${new Date().toLocaleString('sk-SK')}`, 14, 32);
+
+            // Calculations
+            const dataMap = {};
+            let totalMs = 0;
+            project.laps.forEach(l => {
+                dataMap[l.category] = (dataMap[l.category] || { time: 0, color: l.color });
+                dataMap[l.category].time += l.time;
+                totalMs += l.time;
+            });
+
+            // 1. PIE CHART
+            doc.setFontSize(14);
+            doc.setTextColor(30, 41, 59);
+            doc.text(t.summaryTitle, 14, 45);
+            
+            let startAngle = 0;
+            const centerX = 50, centerY = 80, radius = 25;
+            Object.entries(dataMap).forEach(([cat, data]) => {
+                const sliceAngle = (data.time / totalMs) * 2 * Math.PI;
+                const rgb = hexToRgb(data.color);
+                doc.setFillColor(rgb.r, rgb.g, rgb.b);
+                const segments = 30;
+                for(let i=0; i<segments; i++){
+                    const a1 = startAngle + (i/segments) * sliceAngle;
+                    const a2 = startAngle + ((i+1)/segments) * sliceAngle;
+                    doc.triangle(centerX, centerY, centerX + radius * Math.cos(a1), centerY + radius * Math.sin(a1), centerX + radius * Math.cos(a2), centerY + radius * Math.sin(a2), 'F');
+                }
+                startAngle += sliceAngle;
+            });
+
+            // Legend
+            let legendY = 65;
+            Object.entries(dataMap).forEach(([cat, data]) => {
+                const rgb = hexToRgb(data.color);
+                doc.setFillColor(rgb.r, rgb.g, rgb.b);
+                doc.rect(90, legendY - 3, 4, 4, 'F');
+                doc.setTextColor(30, 41, 59);
+                doc.setFontSize(9);
+                const percent = ((data.time / totalMs) * 100).toFixed(1);
+                doc.text(`${cat}: ${formatTime(data.time)} (${percent}%)`, 98, legendY);
+                legendY += 7;
+            });
+
+            // 2. TIMELINE
+            doc.setFontSize(12);
+            doc.text("Vizualizácia merania v čase", 14, 120);
+            const tlX = 14, tlY = 125, tlW = 182, tlH = 10;
+            doc.setDrawColor(200);
+            doc.rect(tlX, tlY, tlW, tlH);
+            let currentX = tlX;
+            project.laps.forEach(lap => {
+                const segmentW = (lap.time / totalMs) * tlW;
+                const rgb = hexToRgb(lap.color);
+                doc.setFillColor(rgb.r, rgb.g, rgb.b);
+                doc.rect(currentX, tlY, segmentW, tlH, 'F');
+                currentX += segmentW;
+            });
+
+            // 3. DATA TABLE (Added Timestamp)
+            const tableData = project.laps.map(lap => [
+                lap.date,
+                lap.timestamp, // New Column
+                lap.category,
+                lap.timeFormatted
+            ]);
+
+            doc.autoTable({
+                startY: 145,
+                head: [[t.tableDate, t.tableTime, t.tableCat, t.tableDur]],
+                body: tableData,
+                theme: 'striped',
+                headStyles: { fillColor: [59, 130, 246] },
+                margin: { top: 145 }
+            });
+
+            doc.save(`${project.name.replace(/\s+/g, '_')}_Report.pdf`);
+        }
+
+        function updateUI() {
+            const timerArea = document.getElementById('main-timer-area');
+            const emptyState = document.getElementById('empty-state');
+            if (activeProjectId) {
+                const project = projects.find(p => p.id === activeProjectId);
+                document.getElementById('active-project-name').innerText = project.name;
+                document.getElementById('active-project-desc').innerText = project.desc;
+                timerArea.classList.remove('hidden'); emptyState.classList.add('hidden');
+            } else { timerArea.classList.add('hidden'); emptyState.classList.remove('hidden'); }
+        }
+
+        function saveData() { localStorage.setItem('tm_pro_projects', JSON.stringify(projects)); }
+
+        init();
+    </script>
+</body>
+</html>
