@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
         .mono { font-family: 'JetBrains Mono', monospace; }
@@ -23,6 +23,22 @@
         .lap-edit-overlay { display: none; position: absolute; inset: 0; background: rgba(255,255,255,0.97); border-radius: 1rem; z-index: 10; align-items: center; justify-content: center; padding: 8px; flex-wrap: wrap; gap: 4px; }
         .lap-card { position: relative; }
         .lap-card:hover .lap-edit-overlay { display: flex; }
+
+        /* iPhone-style stopwatch buttons */
+        .sw-btn { width: 96px; height: 96px; border-radius: 9999px; font-weight: 900; font-size: 15px; letter-spacing: .05em;
+                  display: flex; align-items: center; justify-content: center; position: relative; transition: transform .08s, opacity .15s;
+                  user-select: none; -webkit-tap-highlight-color: transparent; }
+        .sw-btn::after { content: ''; position: absolute; inset: 4px; border-radius: 9999px; border: 2px solid rgba(15,23,42,.9); pointer-events: none; }
+        .sw-btn:active { transform: scale(.94); }
+        .sw-btn:disabled { opacity: .35; cursor: not-allowed; }
+        .sw-btn-grey  { background: #334155; color: #f1f5f9; }
+        .sw-btn-green { background: #064e3b; color: #34d399; }
+        .sw-btn-red   { background: #5f1414; color: #f87171; }
+        @media (min-width: 640px) { .sw-btn { width: 110px; height: 110px; font-size: 16px; } }
+        .mode-card { transition: transform .15s, box-shadow .15s; }
+        .mode-card:hover { transform: translateY(-3px); }
+        .running-dot { width: 8px; height: 8px; border-radius: 9999px; background: #10b981; animation: pulse 1.2s infinite; display: inline-block; }
+        @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .25 } }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800 font-sans">
@@ -30,30 +46,84 @@
     <div class="max-w-6xl mx-auto p-4 lg:p-8">
         <!-- Header -->
         <header class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
+            <button onclick="goHome()" class="text-left">
                 <h1 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                     <span class="bg-blue-600 text-white px-2 py-1 rounded-lg">TM</span>
                     TimeMaster <span class="text-blue-600 font-light">Pro</span>
                 </h1>
                 <p id="txt-subtitle" class="text-slate-500 text-xs font-medium uppercase tracking-widest mt-1">Industrial Time Studies</p>
-            </div>
-            
-            <div class="flex items-center gap-4">
+            </button>
+
+            <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
                 <select id="lang-selector" onchange="changeLanguage(this.value)" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none cursor-pointer">
                     <option value="en">🇬🇧 EN</option>
                     <option value="de">🇩🇪 DE</option>
                     <option value="sk">🇸🇰 SK</option>
-                    <option value="pt">🇵🇹 PT</option>
                     <option value="es">🇪🇸 ES</option>
+                    <option value="pt">🇵🇹 PT</option>
                 </select>
 
-                <button onclick="openProjectModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold transition flex items-center gap-2 text-sm shadow-lg shadow-blue-200">
+                <button id="btn-home" onclick="goHome()" class="hidden bg-white border border-slate-200 hover:bg-slate-100 px-4 py-2.5 rounded-xl font-bold text-sm transition flex items-center gap-2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></svg>
+                    <span id="txt-home">Home</span>
+                </button>
+
+                <button id="btn-new" onclick="newForCurrentView()" class="hidden bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold transition flex items-center gap-2 text-sm shadow-lg shadow-blue-200">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
                     <span id="txt-new-project">New Project</span>
                 </button>
             </div>
         </header>
 
+        <!-- ═══════════════════════ HOME / TITLE PAGE ═══════════════════════ -->
+        <section id="view-home">
+            <div class="text-center mb-8 mt-2">
+                <h2 id="txt-home-title" class="text-3xl font-black text-slate-900">Choose measurement mode</h2>
+                <p id="txt-home-sub" class="text-slate-400 text-sm mt-2"></p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Mode 1: category time study -->
+                <button onclick="openView('study')" class="mode-card text-left bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm hover:shadow-xl">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+                        </div>
+                        <span id="home-count-study" class="text-[10px] font-black text-slate-400 uppercase tracking-widest"></span>
+                    </div>
+                    <h3 id="txt-mode-study" class="text-2xl font-black text-slate-900 mb-2">Time Study</h3>
+                    <p id="txt-mode-study-desc" class="text-sm text-slate-500 leading-relaxed mb-6"></p>
+                    <span id="txt-open-1" class="inline-block bg-slate-900 text-white px-6 py-3 rounded-xl text-xs font-black uppercase">Open</span>
+                </button>
+                <!-- Mode 2: lap stopwatch -->
+                <button onclick="openView('sw')" class="mode-card text-left bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm hover:shadow-xl">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M10 2h4M12 2v3"/></svg>
+                        </div>
+                        <span id="home-count-sw" class="text-[10px] font-black text-slate-400 uppercase tracking-widest"></span>
+                    </div>
+                    <h3 id="txt-mode-sw" class="text-2xl font-black text-slate-900 mb-2">Stopwatch</h3>
+                    <p id="txt-mode-sw-desc" class="text-sm text-slate-500 leading-relaxed mb-6"></p>
+                    <span id="txt-open-2" class="inline-block bg-emerald-600 text-white px-6 py-3 rounded-xl text-xs font-black uppercase">Open</span>
+                </button>
+            </div>
+
+            <!-- Update / version row -->
+            <div class="mt-8 bg-white rounded-2xl border border-slate-200 p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="text-xs text-slate-400 font-bold">
+                    <span id="txt-version">Version</span> <span class="mono text-slate-600" id="app-version"></span>
+                    <span class="mx-2">·</span>
+                    <span id="txt-update-hint"></span>
+                </div>
+                <button onclick="hardReload()" class="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase flex items-center gap-2">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+                    <span id="txt-update">Update</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════ MODE 1: CATEGORY TIME STUDY ═══════════════════════ -->
+        <section id="view-study" class="hidden">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <!-- Sidebar -->
             <div class="lg:col-span-3 order-2 lg:order-1">
@@ -70,7 +140,7 @@
                     <div class="flex justify-between items-center mb-8">
                         <h2 class="text-2xl font-black text-slate-900" id="analysis-project-title">Evaluation</h2>
                         <div class="flex gap-2">
-                            <button onclick="exportCurrentToPDF()" class="p-2 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition" title="Export to PDF">
+                            <button id="btn-study-pdf" onclick="exportCurrentToPDF()" class="p-2 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition" title="Export to PDF">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                             </button>
                             <button onclick="closeAnalysis()" class="p-2 bg-slate-100 rounded-full hover:bg-slate-200 transition">
@@ -80,7 +150,7 @@
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
                         <div class="relative h-64 sm:h-80"><canvas id="chart-pie"></canvas></div>
-                        <div id="analysis-stats" class="space-y-3"></div>
+                        <div id="analysis-stats" class="space-y-2"></div>
                     </div>
                     <div class="mt-12">
                         <h3 id="txt-linear-viz" class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Linear Activity Visualization</h3>
@@ -119,7 +189,7 @@
                         <div>
                             <h3 id="txt-select-cat" class="text-[10px] font-black text-slate-400 uppercase mb-4">Select category to start</h3>
                             <div id="category-chips" class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-8"></div>
-                            
+
                             <!-- Custom Category Management -->
                             <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
                                 <p id="txt-edit-cat" class="text-[10px] font-black text-slate-400 uppercase mb-4">Edit categories</p>
@@ -138,7 +208,6 @@
                                 <h3 id="txt-history-label" class="text-[10px] font-black text-slate-400 uppercase">Measurement Chronology</h3>
                                 <button id="txt-clear-btn" onclick="clearCurrentProjectLaps()" class="text-[10px] text-red-500 font-black uppercase">Clear All</button>
                             </div>
-                            <!-- Edit hint -->
                             <p id="txt-edit-hint" class="text-[9px] text-slate-300 font-bold uppercase mb-3">Hover a record to edit its category</p>
                             <div id="laps-list" class="space-y-3 max-h-[500px] overflow-y-auto no-scrollbar"></div>
                         </div>
@@ -152,15 +221,117 @@
                 </div>
             </div>
         </div>
+        </section>
+
+        <!-- ═══════════════════════ MODE 2: LAP STOPWATCH ═══════════════════════ -->
+        <section id="view-sw" class="hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Sidebar -->
+            <div class="lg:col-span-3 order-2 lg:order-1">
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                    <h2 id="txt-my-meas" class="font-bold text-sm mb-4 text-slate-400 uppercase tracking-widest">My Measurements</h2>
+                    <div id="sw-list" class="space-y-2 max-h-[60vh] overflow-y-auto no-scrollbar"></div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-9 order-1 lg:order-2 space-y-6">
+                <!-- Stopwatch report -->
+                <div id="sw-report" class="bg-white rounded-3xl p-6 lg:p-10 border border-emerald-100 shadow-xl hidden">
+                    <div class="flex justify-between items-start mb-6 gap-4">
+                        <div class="min-w-0">
+                            <h2 class="text-2xl font-black text-slate-900 truncate" id="swr-title">Report</h2>
+                            <p class="text-sm text-slate-400 mt-1" id="swr-subject"></p>
+                        </div>
+                        <div class="flex gap-2 flex-shrink-0">
+                            <button id="btn-sw-pdf" onclick="exportSwPDF()" class="p-2 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition" title="Export to PDF">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                            </button>
+                            <button onclick="closeSwReport()" class="p-2 bg-slate-100 rounded-full hover:bg-slate-200 transition">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- KPI tiles -->
+                    <div id="swr-tiles" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3"></div>
+                    <div id="swr-secondary" class="flex flex-wrap gap-x-6 gap-y-1 text-[11px] font-bold text-slate-400 mb-8 px-1"></div>
+
+                    <h3 id="txt-lap-chart" class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Lap times</h3>
+                    <div class="relative h-72 sm:h-96"><canvas id="chart-laps"></canvas></div>
+                    <div id="swr-legend" class="flex flex-wrap justify-center gap-x-5 gap-y-2 mt-4 text-[11px] font-bold text-slate-500"></div>
+
+                    <h3 id="txt-lap-table" class="text-xs font-black text-slate-400 uppercase tracking-widest mt-10 mb-3">Lap details</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs">
+                            <thead><tr id="swr-thead" class="text-left text-[10px] uppercase text-slate-400 border-b border-slate-200"></tr></thead>
+                            <tbody id="swr-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Stopwatch -->
+                <div id="sw-area" class="bg-white rounded-3xl p-6 lg:p-8 border border-slate-100 shadow-xl hidden">
+                    <div class="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2">
+                                <h2 id="sw-name" class="text-3xl font-black text-slate-900 leading-none truncate">Measurement</h2>
+                                <button onclick="openMeasModal(true)" class="text-slate-300 hover:text-blue-600 transition" id="btn-edit-meas" title="Edit">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+                                </button>
+                            </div>
+                            <p id="sw-subject" class="text-slate-400 text-sm mt-2"></p>
+                        </div>
+                        <button onclick="showSwReport()" class="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-800 transition flex items-center gap-2 flex-shrink-0">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 3v18h18"/><path d="M7 16v-4M11 16V8M15 16v-6M19 16V6"/></svg>
+                            <span id="txt-report">REPORT</span>
+                        </button>
+                    </div>
+
+                    <!-- Display -->
+                    <div class="bg-slate-900 rounded-[2rem] px-6 pt-8 pb-8 sm:px-10 text-center relative overflow-hidden shadow-2xl">
+                        <div class="absolute top-5 right-7 text-right">
+                            <div id="txt-total-lbl" class="text-[9px] text-slate-500 font-black uppercase tracking-widest">Total</div>
+                            <div id="sw-total" class="mono text-blue-400/60 text-lg font-bold">00:00.0</div>
+                        </div>
+                        <span id="sw-label" class="text-[10px] text-emerald-400 font-black uppercase tracking-[0.4em] mb-4 block">Ready</span>
+                        <div id="sw-display" class="mono text-6xl sm:text-8xl font-bold text-white tabular-nums tracking-tighter leading-none">00:00.0</div>
+
+                        <!-- Two iPhone-style buttons -->
+                        <div class="flex justify-between items-center mt-8 max-w-md mx-auto">
+                            <button id="sw-left" onclick="swLeft()" class="sw-btn sw-btn-grey">LAP</button>
+                            <div id="sw-mini" class="text-[10px] font-bold text-slate-500 mono leading-5"></div>
+                            <button id="sw-right" onclick="swRight()" class="sw-btn sw-btn-green">START</button>
+                        </div>
+                    </div>
+                    <p id="txt-kbd-hint" class="text-[10px] text-slate-300 font-bold uppercase text-center mt-3"></p>
+
+                    <!-- Lap list -->
+                    <div class="mt-6">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 id="txt-laps-lbl" class="text-[10px] font-black text-slate-400 uppercase">Laps</h3>
+                            <button id="txt-sw-clear" onclick="swClearLaps()" class="text-[10px] text-red-500 font-black uppercase">Clear All</button>
+                        </div>
+                        <div id="sw-laps" class="divide-y divide-slate-100 max-h-[460px] overflow-y-auto no-scrollbar border-t border-slate-100"></div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div id="sw-empty" class="bg-white rounded-[3rem] p-16 text-center border border-slate-200 shadow-sm">
+                    <h3 id="txt-sw-empty" class="text-2xl font-black mb-10">Select a measurement</h3>
+                    <button id="txt-sw-start-new" onclick="openMeasModal(false)" class="bg-emerald-600 text-white px-10 py-4 rounded-2xl font-black uppercase shadow-2xl">Start new measurement</button>
+                </div>
+            </div>
+        </div>
+        </section>
     </div>
 
-    <!-- Project Modal -->
+    <!-- Project Modal (mode 1) -->
     <div id="project-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-[2rem] w-full max-w-md p-8 shadow-2xl">
             <h2 id="txt-modal-title" class="text-2xl font-black mb-6">New Project</h2>
             <div class="space-y-4">
                 <input id="modal-project-name" type="text" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 outline-none font-bold" placeholder="Project name">
-                
+
                 <div class="space-y-2">
                     <label id="txt-project-type" class="text-[10px] font-black text-slate-400 uppercase">Project Type</label>
                     <select id="modal-project-type" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 outline-none text-sm font-bold appearance-none">
@@ -171,7 +342,7 @@
                 </div>
 
                 <textarea id="modal-project-desc" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 outline-none text-sm h-24" placeholder="Project description..."></textarea>
-                
+
                 <div class="flex gap-3 pt-4">
                     <button id="txt-modal-cancel" onclick="closeProjectModal()" class="flex-1 bg-slate-100 py-4 rounded-2xl font-black text-slate-500 uppercase">Cancel</button>
                     <button id="txt-modal-create" onclick="createNewProject()" class="flex-1 bg-blue-600 text-white font-black py-4 rounded-2xl shadow-lg uppercase">Create</button>
@@ -180,11 +351,33 @@
         </div>
     </div>
 
+    <!-- Measurement Modal (mode 2) -->
+    <div id="meas-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-[2rem] w-full max-w-md p-8 shadow-2xl">
+            <h2 id="meas-modal-title" class="text-2xl font-black mb-6">New Measurement</h2>
+            <div class="space-y-4">
+                <div class="space-y-2">
+                    <label id="txt-meas-name-lbl" class="text-[10px] font-black text-slate-400 uppercase">Measurement name</label>
+                    <input id="meas-name" type="text" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 outline-none font-bold">
+                </div>
+                <div class="space-y-2">
+                    <label id="txt-meas-subj-lbl" class="text-[10px] font-black text-slate-400 uppercase">Measured subject (optional)</label>
+                    <input id="meas-subject" type="text" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 outline-none text-sm">
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button id="txt-meas-cancel" onclick="closeMeasModal()" class="flex-1 bg-slate-100 py-4 rounded-2xl font-black text-slate-500 uppercase">Cancel</button>
+                    <button id="meas-save" onclick="saveMeasModal()" class="flex-1 bg-emerald-600 text-white font-black py-4 rounded-2xl shadow-lg uppercase">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        const APP_VERSION = '2.2';
         window.jsPDF = window.jspdf.jsPDF;
 
         const FIXED_COLORS = [
-            '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', 
+            '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
             '#ec4899', '#06b6d4', '#f97316', '#64748b', '#2dd4bf',
             '#84cc16', '#a855f7', '#fb7185', '#0ea5e9', '#475569'
         ];
@@ -217,6 +410,7 @@
                 modalCreate: "Create",
                 confirmClear: "Clear all records?",
                 confirmDeleteLap: "Delete this record?",
+                confirmDeleteProject: "Delete this project including all records?",
                 needRecord: "No data to evaluate.",
                 genAt: "GENERATED AT",
                 catProduction: "Production",
@@ -236,10 +430,77 @@
                 tableDur: "Duration",
                 tableTime: "Time",
                 summaryTitle: "Time Allocation Summary",
+                catSummary: "Category Summary",
                 linearViz: "Linear Activity Visualization",
                 records: "records",
                 noRecords: "No records",
-                changeCat: "Change category"
+                changeCat: "Change category",
+                exportPdf: "Export to PDF",
+                deleteProject: "Delete project",
+                // New in v2.0
+                count: "Count",
+                avgDur: "Avg. duration",
+                totalDur: "Total",
+                share: "Share",
+                home: "Home",
+                homeTitle: "Choose measurement mode",
+                homeSub: "All data is stored locally in this browser.",
+                modeStudy: "Time Study",
+                modeStudyDesc: "Category-based measurement of machine or operator activities. Report with time allocation, average duration per activity and timeline.",
+                modeSw: "Stopwatch",
+                modeSwDesc: "Simple lap stopwatch — measure one specific point over multiple cycles. Report with lap chart, trend, average and extremes.",
+                open: "Open",
+                projectsCnt: "projects",
+                measCnt: "measurements",
+                version: "Version",
+                update: "Update",
+                updateHint: "Loads the latest version (same as Ctrl+Shift+R). Data is kept.",
+                newMeas: "New Measurement",
+                editMeas: "Edit Measurement",
+                myMeas: "My Measurements",
+                swEmpty: "Select a measurement",
+                swStartNew: "Start new measurement",
+                measName: "Measurement name",
+                measSubject: "Measured subject (optional)",
+                measSubjectPh: "e.g. machine, operator, part number…",
+                measNamePh: "e.g. Cycle time OP20",
+                save: "Save",
+                lap: "LAP",
+                lapWord: "Lap",
+                start: "START",
+                stop: "STOP",
+                running: "Running",
+                stopped: "Stopped",
+                total: "Total",
+                laps: "Laps",
+                report: "REPORT",
+                avg: "Average",
+                max: "Maximum",
+                min: "Minimum",
+                lapsCount: "Laps",
+                stdDev: "Std. deviation",
+                cv: "Variation (CV)",
+                trend: "Trend",
+                perLap: "per lap",
+                trendUp: "rising",
+                trendDown: "falling",
+                trendFlat: "stable",
+                aboveAvg: "Above average",
+                belowAvg: "Below average",
+                avgLine: "Average",
+                trendLine: "Trend",
+                lapChart: "Lap times",
+                lapTable: "Lap details",
+                deltaAvg: "Δ vs avg",
+                split: "Split",
+                clockTime: "Clock time",
+                kbdHint: "Keyboard: Space = Lap · Enter = Start / Stop",
+                confirmDeleteMeas: "Delete this measurement including all laps?",
+                confirmClearLaps: "Clear all laps of this measurement?",
+                confirmReset: "Discard the current unfinished lap?",
+                needLaps: "Record at least one lap first.",
+                subject: "Subject",
+                noLaps: "No laps yet — press START, then LAP at each cycle point."
             },
             de: {
                 subtitle: "Industrielle Zeitstudien",
@@ -268,6 +529,7 @@
                 modalCreate: "Erstellen",
                 confirmClear: "Alle Aufzeichnungen löschen?",
                 confirmDeleteLap: "Diesen Eintrag löschen?",
+                confirmDeleteProject: "Projekt inkl. aller Einträge löschen?",
                 needRecord: "Keine Daten zur Auswertung.",
                 genAt: "ERSTELLT AM",
                 catProduction: "Produktion",
@@ -287,10 +549,76 @@
                 tableDur: "Dauer",
                 tableTime: "Zeit",
                 summaryTitle: "Zeitverteilung",
+                catSummary: "Kategorieübersicht",
                 linearViz: "Lineare Aktivitätsvisualisierung",
                 records: "Einträge",
                 noRecords: "Keine Einträge",
-                changeCat: "Kategorie ändern"
+                changeCat: "Kategorie ändern",
+                exportPdf: "Als PDF exportieren",
+                deleteProject: "Projekt löschen",
+                count: "Anzahl",
+                avgDur: "Ø Dauer",
+                totalDur: "Gesamt",
+                share: "Anteil",
+                home: "Start",
+                homeTitle: "Messmodus wählen",
+                homeSub: "Alle Daten werden lokal in diesem Browser gespeichert.",
+                modeStudy: "Zeitstudie",
+                modeStudyDesc: "Kategoriebasierte Messung von Maschinen- oder Werkertätigkeiten. Bericht mit Zeitverteilung, Ø Dauer je Tätigkeit und Zeitachse.",
+                modeSw: "Stoppuhr",
+                modeSwDesc: "Einfache Runden-Stoppuhr — einen bestimmten Punkt über mehrere Zyklen messen. Bericht mit Rundendiagramm, Trend, Durchschnitt und Extremwerten.",
+                open: "Öffnen",
+                projectsCnt: "Projekte",
+                measCnt: "Messungen",
+                version: "Version",
+                update: "Aktualisieren",
+                updateHint: "Lädt die neueste Version (wie Strg+Umschalt+R). Daten bleiben erhalten.",
+                newMeas: "Neue Messung",
+                editMeas: "Messung bearbeiten",
+                myMeas: "Meine Messungen",
+                swEmpty: "Messung auswählen",
+                swStartNew: "Neue Messung starten",
+                measName: "Name der Messung",
+                measSubject: "Messobjekt (optional)",
+                measSubjectPh: "z. B. Maschine, Werker, Teilenummer…",
+                measNamePh: "z. B. Zykluszeit OP20",
+                save: "Speichern",
+                lap: "RUNDE",
+                lapWord: "Runde",
+                start: "START",
+                stop: "STOPP",
+                running: "Läuft",
+                stopped: "Gestoppt",
+                total: "Gesamt",
+                laps: "Runden",
+                report: "BERICHT",
+                avg: "Durchschnitt",
+                max: "Maximum",
+                min: "Minimum",
+                lapsCount: "Runden",
+                stdDev: "Standardabw.",
+                cv: "Variation (VK)",
+                trend: "Trend",
+                perLap: "pro Runde",
+                trendUp: "steigend",
+                trendDown: "fallend",
+                trendFlat: "stabil",
+                aboveAvg: "Über Durchschnitt",
+                belowAvg: "Unter Durchschnitt",
+                avgLine: "Durchschnitt",
+                trendLine: "Trend",
+                lapChart: "Rundenzeiten",
+                lapTable: "Rundendetails",
+                deltaAvg: "Δ zu Ø",
+                split: "Zwischenzeit",
+                clockTime: "Uhrzeit",
+                kbdHint: "Tastatur: Leertaste = Runde · Enter = Start / Stopp",
+                confirmDeleteMeas: "Messung inkl. aller Runden löschen?",
+                confirmClearLaps: "Alle Runden dieser Messung löschen?",
+                confirmReset: "Aktuelle, nicht abgeschlossene Runde verwerfen?",
+                needLaps: "Bitte zuerst mindestens eine Runde erfassen.",
+                subject: "Objekt",
+                noLaps: "Noch keine Runden — START drücken, dann RUNDE an jedem Zykluspunkt."
             },
             sk: {
                 subtitle: "Priemyselné časové štúdie",
@@ -319,6 +647,7 @@
                 modalCreate: "Vytvoriť",
                 confirmClear: "Vymazať celú históriu?",
                 confirmDeleteLap: "Vymazať tento záznam?",
+                confirmDeleteProject: "Vymazať projekt vrátane všetkých záznamov?",
                 needRecord: "Chýbajú dáta pre analýzu.",
                 genAt: "VYGENEROVANÉ",
                 catProduction: "Výroba",
@@ -338,10 +667,76 @@
                 tableDur: "Trvanie",
                 tableTime: "Čas",
                 summaryTitle: "Súhrn rozdelenia času",
+                catSummary: "Súhrn kategórií",
                 linearViz: "Lineárna Vizualizácia Aktivít",
                 records: "záznamov",
                 noRecords: "Bez záznamov",
-                changeCat: "Zmeniť kategóriu"
+                changeCat: "Zmeniť kategóriu",
+                exportPdf: "Exportovať do PDF",
+                deleteProject: "Vymazať projekt",
+                count: "Počet",
+                avgDur: "Ø trvanie",
+                totalDur: "Spolu",
+                share: "Podiel",
+                home: "Domov",
+                homeTitle: "Vyberte režim merania",
+                homeSub: "Všetky dáta sa ukladajú lokálne v tomto prehliadači.",
+                modeStudy: "Časová štúdia",
+                modeStudyDesc: "Meranie činností stroja alebo operátora podľa kategórií. Report s rozdelením času, priemerným trvaním činností a časovou osou.",
+                modeSw: "Stopky",
+                modeSwDesc: "Jednoduché stopky s kolami — meranie jedného konkrétneho bodu cez viacero cyklov. Report s grafom kôl, trendom, priemerom a extrémami.",
+                open: "Otvoriť",
+                projectsCnt: "projektov",
+                measCnt: "meraní",
+                version: "Verzia",
+                update: "Aktualizovať",
+                updateHint: "Načíta najnovšiu verziu (ako Ctrl+Shift+R). Dáta zostanú zachované.",
+                newMeas: "Nové meranie",
+                editMeas: "Upraviť meranie",
+                myMeas: "Moje merania",
+                swEmpty: "Vyberte meranie",
+                swStartNew: "Začať nové meranie",
+                measName: "Názov merania",
+                measSubject: "Meraný subjekt (voliteľné)",
+                measSubjectPh: "napr. stroj, operátor, číslo dielu…",
+                measNamePh: "napr. Čas cyklu OP20",
+                save: "Uložiť",
+                lap: "KOLO",
+                lapWord: "Kolo",
+                start: "ŠTART",
+                stop: "STOP",
+                running: "Beží",
+                stopped: "Zastavené",
+                total: "Celkom",
+                laps: "Kolá",
+                report: "REPORT",
+                avg: "Priemer",
+                max: "Maximum",
+                min: "Minimum",
+                lapsCount: "Počet kôl",
+                stdDev: "Smer. odchýlka",
+                cv: "Variabilita (CV)",
+                trend: "Trend",
+                perLap: "na kolo",
+                trendUp: "rastúci",
+                trendDown: "klesajúci",
+                trendFlat: "stabilný",
+                aboveAvg: "Nad priemerom",
+                belowAvg: "Pod priemerom",
+                avgLine: "Priemer",
+                trendLine: "Trend",
+                lapChart: "Časy kôl",
+                lapTable: "Detail kôl",
+                deltaAvg: "Δ k priemeru",
+                split: "Medzičas",
+                clockTime: "Čas",
+                kbdHint: "Klávesnica: Medzerník = Kolo · Enter = Štart / Stop",
+                confirmDeleteMeas: "Vymazať meranie vrátane všetkých kôl?",
+                confirmClearLaps: "Vymazať všetky kolá tohto merania?",
+                confirmReset: "Zahodiť aktuálne nedokončené kolo?",
+                needLaps: "Najprv zaznamenajte aspoň jedno kolo.",
+                subject: "Subjekt",
+                noLaps: "Zatiaľ žiadne kolá — stlačte ŠTART a potom KOLO v každom bode cyklu."
             },
             es: {
                 subtitle: "Estudios de Tiempos Industriales",
@@ -370,6 +765,7 @@
                 modalCreate: "Crear",
                 confirmClear: "¿Borrar todos los registros?",
                 confirmDeleteLap: "¿Eliminar este registro?",
+                confirmDeleteProject: "¿Eliminar el proyecto con todos sus registros?",
                 needRecord: "Sin datos para evaluar.",
                 genAt: "GENERADO EL",
                 catProduction: "Producción",
@@ -389,10 +785,76 @@
                 tableDur: "Duración",
                 tableTime: "Hora",
                 summaryTitle: "Resumen de Distribución de Tiempo",
+                catSummary: "Resumen por categoría",
                 linearViz: "Visualización Lineal de Actividades",
                 records: "registros",
                 noRecords: "Sin registros",
-                changeCat: "Cambiar categoría"
+                changeCat: "Cambiar categoría",
+                exportPdf: "Exportar a PDF",
+                deleteProject: "Eliminar proyecto",
+                count: "Cantidad",
+                avgDur: "Duración media",
+                totalDur: "Total",
+                share: "Porcentaje",
+                home: "Inicio",
+                homeTitle: "Elija el modo de medición",
+                homeSub: "Todos los datos se guardan localmente en este navegador.",
+                modeStudy: "Estudio de tiempos",
+                modeStudyDesc: "Medición por categorías de actividades de máquina u operador. Informe con distribución del tiempo, duración media por actividad y línea de tiempo.",
+                modeSw: "Cronómetro",
+                modeSwDesc: "Cronómetro simple con vueltas — mida un punto concreto durante varios ciclos. Informe con gráfico de vueltas, tendencia, media y extremos.",
+                open: "Abrir",
+                projectsCnt: "proyectos",
+                measCnt: "mediciones",
+                version: "Versión",
+                update: "Actualizar",
+                updateHint: "Carga la versión más reciente (como Ctrl+Mayús+R). Los datos se conservan.",
+                newMeas: "Nueva medición",
+                editMeas: "Editar medición",
+                myMeas: "Mis mediciones",
+                swEmpty: "Seleccione una medición",
+                swStartNew: "Iniciar nueva medición",
+                measName: "Nombre de la medición",
+                measSubject: "Objeto medido (opcional)",
+                measSubjectPh: "p. ej. máquina, operador, número de pieza…",
+                measNamePh: "p. ej. Tiempo de ciclo OP20",
+                save: "Guardar",
+                lap: "VUELTA",
+                lapWord: "Vuelta",
+                start: "INICIAR",
+                stop: "DETENER",
+                running: "En marcha",
+                stopped: "Detenido",
+                total: "Total",
+                laps: "Vueltas",
+                report: "INFORME",
+                avg: "Media",
+                max: "Máximo",
+                min: "Mínimo",
+                lapsCount: "Vueltas",
+                stdDev: "Desv. estándar",
+                cv: "Variación (CV)",
+                trend: "Tendencia",
+                perLap: "por vuelta",
+                trendUp: "creciente",
+                trendDown: "decreciente",
+                trendFlat: "estable",
+                aboveAvg: "Sobre la media",
+                belowAvg: "Bajo la media",
+                avgLine: "Media",
+                trendLine: "Tendencia",
+                lapChart: "Tiempos por vuelta",
+                lapTable: "Detalle de vueltas",
+                deltaAvg: "Δ vs media",
+                split: "Parcial",
+                clockTime: "Hora",
+                kbdHint: "Teclado: Espacio = Vuelta · Enter = Iniciar / Detener",
+                confirmDeleteMeas: "¿Eliminar la medición con todas sus vueltas?",
+                confirmClearLaps: "¿Borrar todas las vueltas de esta medición?",
+                confirmReset: "¿Descartar la vuelta actual sin terminar?",
+                needLaps: "Registre primero al menos una vuelta.",
+                subject: "Objeto",
+                noLaps: "Aún no hay vueltas — pulse INICIAR y luego VUELTA en cada punto del ciclo."
             },
             pt: {
                 subtitle: "Estudos de Tempo Industrial",
@@ -421,6 +883,7 @@
                 modalCreate: "Criar",
                 confirmClear: "Apagar todos os registos?",
                 confirmDeleteLap: "Apagar este registo?",
+                confirmDeleteProject: "Apagar o projeto com todos os registos?",
                 needRecord: "Sem dados para avaliar.",
                 genAt: "GERADO EM",
                 catProduction: "Produção",
@@ -440,10 +903,76 @@
                 tableDur: "Duração",
                 tableTime: "Hora",
                 summaryTitle: "Resumo de Alocação de Tempo",
+                catSummary: "Resumo por categoria",
                 linearViz: "Visualização Linear de Atividades",
                 records: "registos",
                 noRecords: "Sem registos",
-                changeCat: "Alterar categoria"
+                changeCat: "Alterar categoria",
+                exportPdf: "Exportar para PDF",
+                deleteProject: "Apagar projeto",
+                count: "Quantidade",
+                avgDur: "Duração média",
+                totalDur: "Total",
+                share: "Percentagem",
+                home: "Início",
+                homeTitle: "Escolha o modo de medição",
+                homeSub: "Todos os dados são guardados localmente neste navegador.",
+                modeStudy: "Estudo de tempos",
+                modeStudyDesc: "Medição por categorias de atividades de máquina ou operador. Relatório com distribuição do tempo, duração média por atividade e linha temporal.",
+                modeSw: "Cronómetro",
+                modeSwDesc: "Cronómetro simples com voltas — meça um ponto específico ao longo de vários ciclos. Relatório com gráfico de voltas, tendência, média e extremos.",
+                open: "Abrir",
+                projectsCnt: "projetos",
+                measCnt: "medições",
+                version: "Versão",
+                update: "Atualizar",
+                updateHint: "Carrega a versão mais recente (como Ctrl+Shift+R). Os dados são mantidos.",
+                newMeas: "Nova medição",
+                editMeas: "Editar medição",
+                myMeas: "As minhas medições",
+                swEmpty: "Selecione uma medição",
+                swStartNew: "Iniciar nova medição",
+                measName: "Nome da medição",
+                measSubject: "Objeto medido (opcional)",
+                measSubjectPh: "ex. máquina, operador, número de peça…",
+                measNamePh: "ex. Tempo de ciclo OP20",
+                save: "Guardar",
+                lap: "VOLTA",
+                lapWord: "Volta",
+                start: "INICIAR",
+                stop: "PARAR",
+                running: "Em curso",
+                stopped: "Parado",
+                total: "Total",
+                laps: "Voltas",
+                report: "RELATÓRIO",
+                avg: "Média",
+                max: "Máximo",
+                min: "Mínimo",
+                lapsCount: "Voltas",
+                stdDev: "Desvio padrão",
+                cv: "Variação (CV)",
+                trend: "Tendência",
+                perLap: "por volta",
+                trendUp: "crescente",
+                trendDown: "decrescente",
+                trendFlat: "estável",
+                aboveAvg: "Acima da média",
+                belowAvg: "Abaixo da média",
+                avgLine: "Média",
+                trendLine: "Tendência",
+                lapChart: "Tempos por volta",
+                lapTable: "Detalhe das voltas",
+                deltaAvg: "Δ vs média",
+                split: "Parcial",
+                clockTime: "Hora",
+                kbdHint: "Teclado: Espaço = Volta · Enter = Iniciar / Parar",
+                confirmDeleteMeas: "Apagar a medição com todas as voltas?",
+                confirmClearLaps: "Apagar todas as voltas desta medição?",
+                confirmReset: "Descartar a volta atual não concluída?",
+                needLaps: "Registe primeiro pelo menos uma volta.",
+                subject: "Objeto",
+                noLaps: "Ainda sem voltas — prima INICIAR e depois VOLTA em cada ponto do ciclo."
             }
         };
 
@@ -458,12 +987,30 @@
         let pieChart = null;
         let selectedColor = FIXED_COLORS[0];
 
+        // ── Stopwatch mode state ───────────────────────────────────────────
+        let measurements = JSON.parse(localStorage.getItem('tm_pro_sw')) || [];
+        let activeMeasId = null;
+        let swTimer = null;
+        let lapChart = null;
+        let measModalEditing = false;
+        let currentView = 'home';
+
+        function esc(s) {
+            return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
         function init() {
+            if (!translations[currentLang]) currentLang = 'en';
             document.getElementById('lang-selector').value = currentLang;
+            document.getElementById('app-version').innerText = 'v' + APP_VERSION;
             applyTranslations();
             renderProjectList();
             renderColorGrid();
             updateUI();
+            renderSwList();
+            updateSwUI();
+            restoreAfterReload();
+            if (currentView === 'home') renderHome();
         }
 
         function changeLanguage(lang) {
@@ -474,52 +1021,152 @@
             if (activeProjectId) {
                 renderCategories();
                 renderLaps();
+                if (!document.getElementById('analysis-area').classList.contains('hidden')) showAnalysis();
             }
+            renderHome();
+            renderSwList();
+            updateSwUI();
+            if (!document.getElementById('sw-report').classList.contains('hidden')) showSwReport();
         }
 
         function t(key) {
-            return (translations[currentLang] || translations['en'])[key] || key;
+            return (translations[currentLang] || translations['en'])[key] ?? translations['en'][key] ?? key;
         }
 
         function applyTranslations() {
-            document.getElementById('txt-subtitle').innerText = t('subtitle');
-            document.getElementById('txt-new-project').innerText = t('newProject');
-            document.getElementById('txt-my-projects').innerText = t('myProjects');
-            document.getElementById('txt-evaluate').innerText = t('evaluate');
-            document.getElementById('txt-reset').innerText = t('reset');
-            document.getElementById('txt-select-cat').innerText = t('selectCat');
-            document.getElementById('txt-edit-cat').innerText = t('editCat');
-            document.getElementById('txt-add-btn').innerText = t('addBtn');
-            document.getElementById('txt-history-label').innerText = t('history');
-            document.getElementById('txt-clear-btn').innerText = t('clearBtn');
-            document.getElementById('txt-edit-hint').innerText = t('editHint');
-            document.getElementById('txt-empty-title').innerText = t('emptyTitle');
-            document.getElementById('txt-start-new').innerText = t('startNew');
-            document.getElementById('txt-modal-title').innerText = t('modalTitle');
-            document.getElementById('txt-project-type').innerText = t('projectType');
-            document.getElementById('opt-custom').innerText = t('optCustom');
-            document.getElementById('opt-machine').innerText = t('optMachine');
-            document.getElementById('opt-human').innerText = t('optHuman');
+            document.documentElement.lang = currentLang;
+            const set = (id, key) => { const el = document.getElementById(id); if (el) el.innerText = t(key); };
+            set('txt-subtitle', 'subtitle');
+            set('txt-my-projects', 'myProjects');
+            set('txt-evaluate', 'evaluate');
+            set('txt-reset', 'reset');
+            set('txt-select-cat', 'selectCat');
+            set('txt-edit-cat', 'editCat');
+            set('txt-add-btn', 'addBtn');
+            set('txt-history-label', 'history');
+            set('txt-clear-btn', 'clearBtn');
+            set('txt-edit-hint', 'editHint');
+            set('txt-empty-title', 'emptyTitle');
+            set('txt-start-new', 'startNew');
+            set('txt-modal-title', 'modalTitle');
+            set('txt-project-type', 'projectType');
+            set('opt-custom', 'optCustom');
+            set('opt-machine', 'optMachine');
+            set('opt-human', 'optHuman');
             document.getElementById('modal-project-name').placeholder = t('modalName');
             document.getElementById('modal-project-desc').placeholder = t('modalDesc');
-            document.getElementById('txt-modal-cancel').innerText = t('modalCancel');
-            document.getElementById('txt-modal-create').innerText = t('modalCreate');
-            document.getElementById('pause-btn').innerText = t('pause');
-            document.getElementById('txt-linear-viz').innerText = t('linearViz');
+            set('txt-modal-cancel', 'modalCancel');
+            set('txt-modal-create', 'modalCreate');
+            set('pause-btn', 'pause');
+            set('txt-linear-viz', 'linearViz');
+            document.getElementById('btn-study-pdf').title = t('exportPdf');
+            document.getElementById('btn-sw-pdf').title = t('exportPdf');
+
+            // Home
+            set('txt-home', 'home');
+            set('txt-home-title', 'homeTitle');
+            set('txt-home-sub', 'homeSub');
+            set('txt-mode-study', 'modeStudy');
+            set('txt-mode-study-desc', 'modeStudyDesc');
+            set('txt-mode-sw', 'modeSw');
+            set('txt-mode-sw-desc', 'modeSwDesc');
+            set('txt-open-1', 'open');
+            set('txt-open-2', 'open');
+            set('txt-version', 'version');
+            set('txt-update', 'update');
+            set('txt-update-hint', 'updateHint');
+
+            // Stopwatch
+            set('txt-my-meas', 'myMeas');
+            set('txt-sw-empty', 'swEmpty');
+            set('txt-sw-start-new', 'swStartNew');
+            set('txt-report', 'report');
+            set('txt-total-lbl', 'total');
+            set('txt-laps-lbl', 'laps');
+            set('txt-sw-clear', 'clearBtn');
+            set('txt-kbd-hint', 'kbdHint');
+            set('txt-lap-chart', 'lapChart');
+            set('txt-lap-table', 'lapTable');
+            set('txt-meas-name-lbl', 'measName');
+            set('txt-meas-subj-lbl', 'measSubject');
+            set('txt-meas-cancel', 'modalCancel');
+            document.getElementById('meas-name').placeholder = t('measNamePh');
+            document.getElementById('meas-subject').placeholder = t('measSubjectPh');
+            document.getElementById('btn-edit-meas').title = t('editMeas');
+
+            updateHeaderForView();
 
             // Update ready/pause label if not running
             const label = document.getElementById('current-category-label');
             if (!isRunning) label.innerText = t('ready');
         }
 
+        // ═════════════════════════ VIEW / NAVIGATION ═════════════════════════
+        function showView(v) {
+            currentView = v;
+            ['home', 'study', 'sw'].forEach(x => document.getElementById('view-' + x).classList.toggle('hidden', x !== v));
+            updateHeaderForView();
+            if (v === 'home') renderHome();
+            if (v === 'sw') { renderSwList(); updateSwUI(); }
+            window.scrollTo({ top: 0 });
+        }
+        function openView(v) { showView(v); }
+        function goHome() { showView('home'); }
+
+        function updateHeaderForView() {
+            const onHome = currentView === 'home';
+            document.getElementById('btn-home').classList.toggle('hidden', onHome);
+            document.getElementById('btn-new').classList.toggle('hidden', onHome);
+            document.getElementById('txt-new-project').innerText = currentView === 'sw' ? t('newMeas') : t('newProject');
+            document.getElementById('txt-subtitle').innerText =
+                currentView === 'sw' ? t('modeSw') : currentView === 'study' ? t('modeStudy') : t('subtitle');
+        }
+
+        function newForCurrentView() {
+            if (currentView === 'sw') openMeasModal(false); else openProjectModal();
+        }
+
+        function renderHome() {
+            document.getElementById('home-count-study').innerText = `${projects.length} ${t('projectsCnt')}`;
+            const runningCnt = measurements.filter(m => m.sw && m.sw.running).length;
+            document.getElementById('home-count-sw').innerHTML =
+                `${measurements.length} ${esc(t('measCnt'))}` + (runningCnt ? ` · <span class="running-dot"></span> <span class="text-emerald-600">${runningCnt} ${esc(t('running'))}</span>` : '');
+        }
+
+        // ── Update button (hard reload, same pattern as ManufSim) ─────────
+        function hardReload() {
+            try {
+                sessionStorage.setItem('tm_restore', JSON.stringify({ view: currentView, projectId: activeProjectId, measId: activeMeasId }));
+            } catch (e) { }
+            if ('caches' in window) {
+                caches.keys().then(names => names.forEach(n => caches.delete(n))).catch(() => { });
+            }
+            const url = window.location.href.split('?')[0].split('#')[0] + '?v=' + Date.now();
+            window.location.replace(url);
+        }
+
+        function restoreAfterReload() {
+            let r = null;
+            try { r = JSON.parse(sessionStorage.getItem('tm_restore')); sessionStorage.removeItem('tm_restore'); } catch (e) { }
+            if (!r) return;
+            if (r.view === 'study') {
+                showView('study');
+                if (r.projectId && projects.find(p => p.id === r.projectId)) setActiveProject(r.projectId);
+            } else if (r.view === 'sw') {
+                showView('sw');
+                if (r.measId && measurements.find(m => m.id === r.measId)) setActiveMeas(r.measId);
+            }
+        }
+
+        // ═════════════════════════ MODE 1: CATEGORY TIME STUDY ═════════════════════════
         function renderColorGrid() {
             const grid = document.getElementById('fixed-colors-grid');
             grid.innerHTML = FIXED_COLORS.map(c => `
-                <div class="color-swatch ${c === selectedColor ? 'active' : ''}" 
-                     style="background-color: ${c}" 
+                <div class="color-swatch ${c === selectedColor ? 'active' : ''}"
+                     style="background-color: ${c}"
                      onclick="selectColor('${c}', this)"></div>
             `).join('');
-            
+
             const customDiv = document.createElement('div');
             customDiv.className = 'flex items-center gap-1 border border-slate-200 rounded-lg px-1 bg-white';
             customDiv.innerHTML = `<input type="color" id="custom-picker" onchange="selectColor(this.value, null)">`;
@@ -532,7 +1179,10 @@
             if (el) el.classList.add('active');
         }
 
-        function openProjectModal() { document.getElementById('project-modal').classList.replace('hidden', 'flex'); }
+        function openProjectModal() {
+            document.getElementById('project-modal').classList.replace('hidden', 'flex');
+            setTimeout(() => document.getElementById('modal-project-name').focus(), 50);
+        }
         function closeProjectModal() {
             document.getElementById('project-modal').classList.replace('flex', 'hidden');
             document.getElementById('modal-project-name').value = '';
@@ -589,7 +1239,7 @@
 
         function deleteProject(id, e) {
             e.stopPropagation();
-            if (!confirm(t('confirmClear'))) return;
+            if (!confirm(t('confirmDeleteProject'))) return;
             projects = projects.filter(p => p.id !== id);
             if (activeProjectId === id) {
                 activeProjectId = null;
@@ -674,7 +1324,6 @@
             saveData(); renderLaps(); renderProjectList();
         }
 
-        // ── Lap deletion ──────────────────────────────────────────────────
         function deleteLap(lapId) {
             if (!confirm(t('confirmDeleteLap'))) return;
             const project = projects.find(p => p.id === activeProjectId);
@@ -682,7 +1331,6 @@
             saveData(); renderLaps(); renderProjectList();
         }
 
-        // ── Lap category edit ─────────────────────────────────────────────
         function changeLapCategory(lapId, newCatName) {
             const project = projects.find(p => p.id === activeProjectId);
             const lap = project.laps.find(l => l.id === lapId);
@@ -698,12 +1346,12 @@
             const container = document.getElementById('category-chips');
             const mgmt = document.getElementById('category-management-list');
             const project = projects.find(p => p.id === activeProjectId);
-            
+
             container.innerHTML = project.categories.map(cat => `
-                <button onclick="startTimerWithCategory('${cat.name.replace(/'/g, "\\'")}')" 
+                <button onclick="startTimerWithCategory('${cat.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')"
                         style="border-color: ${cat.color}; color: ${cat.color}; background: ${cat.color}08"
                         class="p-4 border-2 rounded-2xl text-xs font-black transition hover:scale-105 active:scale-95 shadow-sm">
-                    ${cat.name.toUpperCase()}
+                    ${esc(cat.name.toUpperCase())}
                 </button>
             `).join('');
 
@@ -711,9 +1359,9 @@
                 <div class="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
                     <div class="flex items-center gap-3">
                         <div class="w-3 h-3 rounded-full" style="background-color: ${cat.color}"></div>
-                        <span class="text-xs font-bold text-slate-700">${cat.name}</span>
+                        <span class="text-xs font-bold text-slate-700">${esc(cat.name)}</span>
                     </div>
-                    <button onclick="removeCategory('${cat.name.replace(/'/g, "\\'")}')" class="text-slate-300 hover:text-red-500">
+                    <button onclick="removeCategory('${cat.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')" class="text-slate-300 hover:text-red-500">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
                     </button>
                 </div>
@@ -746,10 +1394,9 @@
                 return;
             }
 
-            // Build category options HTML for the overlay
             const catOptions = (lapId) => project.categories.map(cat => `
-                <button onclick="changeLapCategory(${lapId}, '${cat.name.replace(/'/g, "\\'")}'); event.stopPropagation();"
-                        title="${cat.name}"
+                <button onclick="changeLapCategory(${lapId}, '${cat.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'); event.stopPropagation();"
+                        title="${esc(cat.name)}"
                         style="background-color: ${cat.color}; width: 28px; height: 28px; border-radius: 8px; border: 2px solid white; transition: transform 0.1s;"
                         onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'"
                         class="shadow-md"></button>
@@ -760,21 +1407,19 @@
                     <div class="flex items-center gap-4 flex-1 min-w-0">
                         <div class="w-1.5 h-10 rounded-full flex-shrink-0" style="background-color: ${lap.color}"></div>
                         <div class="min-w-0">
-                            <span class="text-[9px] font-black uppercase" style="color: ${lap.color}">${lap.category}</span>
+                            <span class="text-[9px] font-black uppercase" style="color: ${lap.color}">${esc(lap.category)}</span>
                             <div class="mono font-bold text-lg text-slate-800">${lap.timeFormatted}</div>
                         </div>
                     </div>
                     <div class="flex items-center gap-3 flex-shrink-0">
                         <div class="text-[9px] text-slate-400 font-bold text-right">${lap.date}<br><span class="text-slate-600">${lap.timestamp}</span></div>
-                        <!-- Delete button -->
-                        <button onclick="deleteLap(${lap.id})" title="${t('confirmDeleteLap')}"
+                        <button onclick="deleteLap(${lap.id})" title="${esc(t('confirmDeleteLap'))}"
                                 class="text-slate-200 hover:text-red-500 transition flex-shrink-0 ml-1">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                                 <path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
                             </svg>
                         </button>
                     </div>
-                    <!-- Category edit overlay (shown on hover via CSS) -->
                     <div class="lap-edit-overlay">
                         <span class="text-[9px] font-black text-slate-400 uppercase w-full text-center mb-1">${t('changeCat')}</span>
                         ${catOptions(lap.id)}
@@ -792,16 +1437,15 @@
             list.innerHTML = projects.map(p => `
                 <div class="group relative">
                     <button onclick="setActiveProject('${p.id}')" class="w-full text-left p-4 rounded-xl transition border border-transparent ${activeProjectId === p.id ? 'active-project shadow-md' : 'hover:bg-slate-50'}">
-                        <div class="font-black text-sm text-slate-900 truncate pr-6">${p.name}</div>
+                        <div class="font-black text-sm text-slate-900 truncate pr-6">${esc(p.name)}</div>
                         <div class="flex justify-between items-center mt-1">
                             <div class="text-[9px] text-slate-400 font-bold uppercase">${p.laps.length} ${t('records')}</div>
                             <div class="mono text-[10px] text-blue-600 font-bold">${formatTime(p.laps.reduce((a, l) => a + l.time, 0))}</div>
                         </div>
                     </button>
-                    <!-- Delete project button (top-right, visible on hover) -->
                     <button onclick="deleteProject('${p.id}', event)"
                             class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition text-slate-300 hover:text-red-500"
-                            title="Delete project">
+                            title="${esc(t('deleteProject'))}">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                             <path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
                         </svg>
@@ -810,18 +1454,26 @@
             `).join('');
         }
 
+        // Aggregation per category: total, count, average
+        function categoryStats(project) {
+            const dataMap = {};
+            let totalMs = 0;
+            project.laps.forEach(l => {
+                if (!dataMap[l.category]) dataMap[l.category] = { time: 0, count: 0, color: l.color };
+                dataMap[l.category].time += l.time;
+                dataMap[l.category].count += 1;
+                totalMs += l.time;
+            });
+            Object.values(dataMap).forEach(d => d.avg = d.count ? d.time / d.count : 0);
+            return { dataMap, totalMs };
+        }
+
         function showAnalysis() {
             const project = projects.find(p => p.id === activeProjectId);
             if (!project.laps.length) { alert(t('needRecord')); return; }
             document.getElementById('analysis-area').classList.remove('hidden');
             document.getElementById('analysis-project-title').innerText = project.name;
-            const dataMap = {};
-            let totalMs = 0;
-            project.laps.forEach(l => {
-                if (!dataMap[l.category]) dataMap[l.category] = { time: 0, color: l.color };
-                dataMap[l.category].time += l.time;
-                totalMs += l.time;
-            });
+            const { dataMap, totalMs } = categoryStats(project);
             const labels = Object.keys(dataMap);
             const values = labels.map(l => dataMap[l].time);
             const colors = labels.map(l => dataMap[l].color);
@@ -831,21 +1483,30 @@
                 data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }] },
                 options: { cutout: '75%', plugins: { legend: { display: false } } }
             });
-            document.getElementById('analysis-stats').innerHTML = labels.map((l, idx) => `
-                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                    <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded-full" style="background-color: ${colors[idx]}"></div>
-                        <span class="text-xs font-bold">${l}</span>
+            // Header row + one row per category (count, avg duration, total, share)
+            document.getElementById('analysis-stats').innerHTML = `
+                <div class="grid grid-cols-12 gap-2 px-3 text-[9px] font-black text-slate-400 uppercase">
+                    <div class="col-span-4">${esc(t('tableCat'))}</div>
+                    <div class="col-span-2 text-right">${esc(t('count'))}</div>
+                    <div class="col-span-3 text-right">${esc(t('avgDur'))}</div>
+                    <div class="col-span-3 text-right">${esc(t('totalDur'))}</div>
+                </div>` + labels.map((l, idx) => `
+                <div class="grid grid-cols-12 gap-2 items-center p-3 bg-slate-50 rounded-xl">
+                    <div class="col-span-4 flex items-center gap-2 min-w-0">
+                        <div class="w-3 h-3 rounded-full flex-shrink-0" style="background-color: ${colors[idx]}"></div>
+                        <span class="text-xs font-bold truncate">${esc(l)}</span>
                     </div>
-                    <div class="text-right">
+                    <div class="col-span-2 text-right mono text-xs font-bold text-slate-500">${dataMap[l].count}×</div>
+                    <div class="col-span-3 text-right mono text-xs font-bold text-blue-600">${formatTime(dataMap[l].avg)}</div>
+                    <div class="col-span-3 text-right">
                         <div class="mono text-xs font-bold">${formatTime(values[idx])}</div>
-                        <div class="text-[9px] font-black text-slate-400">${((values[idx]/totalMs)*100).toFixed(1)}%</div>
+                        <div class="text-[9px] font-black text-slate-400">${((values[idx] / totalMs) * 100).toFixed(1)}%</div>
                     </div>
                 </div>
             `).join('');
             const timeline = document.getElementById('timeline-container');
             timeline.innerHTML = project.laps.map(lap => `
-                <div style="width: ${(lap.time/totalMs)*100}%; background-color: ${lap.color}" class="h-full border-r border-white/10"></div>
+                <div style="width: ${(lap.time / totalMs) * 100}%; background-color: ${lap.color}" class="h-full border-r border-white/10" title="${esc(lap.category)} ${lap.timeFormatted}"></div>
             `).join('');
             document.getElementById('main-timer-area').classList.add('hidden');
         }
@@ -871,31 +1532,75 @@
             } : { r: 0, g: 0, b: 0 };
         }
 
+        // ── PDF font: Roboto with full Latin-Extended (č, ž, ä, ß, ñ, ã …) ──
+        // Loaded once from CDN and cached in localStorage; if unavailable,
+        // diacritics are stripped so the PDF never shows garbage characters.
+        const PDF_FONT_URLS = {
+            normal: 'https://cdn.jsdelivr.net/npm/@expo-google-fonts/roboto@0.4.3/400Regular/Roboto_400Regular.ttf',
+            bold: 'https://cdn.jsdelivr.net/npm/@expo-google-fonts/roboto@0.4.3/700Bold/Roboto_700Bold.ttf'
+        };
+        let pdfFontCache = null;
+
+        async function loadPdfFonts() {
+            if (pdfFontCache) return pdfFontCache;
+            const out = {};
+            for (const style of ['normal', 'bold']) {
+                const key = 'tm_pro_font_' + style;
+                let b64 = null;
+                try { b64 = localStorage.getItem(key); } catch (e) { }
+                if (!b64) {
+                    const res = await fetch(PDF_FONT_URLS[style]);
+                    if (!res.ok) throw new Error('font');
+                    const buf = new Uint8Array(await res.arrayBuffer());
+                    let bin = '';
+                    for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
+                    b64 = btoa(bin);
+                    try { localStorage.setItem(key, b64); } catch (e) { }
+                }
+                out[style] = b64;
+            }
+            pdfFontCache = out;
+            return out;
+        }
+
+        // Returns { font, tx } — tx() makes any string safe for the chosen font
+        async function preparePdfDoc(doc) {
+            try {
+                const f = await loadPdfFonts();
+                doc.addFileToVFS('Roboto-Regular.ttf', f.normal);
+                doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
+                doc.addFileToVFS('Roboto-Bold.ttf', f.bold);
+                doc.addFont('Roboto-Bold.ttf', 'Roboto', 'bold');
+                doc.setFont('Roboto', 'normal');
+                return { font: 'Roboto', tx: s => String(s ?? '') };
+            } catch (e) {
+                const strip = s => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '')
+                    .replace(/ß/g, 'ss').replace(/Δ/g, 'd').replace(/Ø/g, 'O').replace(/[–—]/g, '-').replace(/…/g, '...').replace(/·/g, '|').replace(/×/g, 'x');
+                doc.setFont('helvetica', 'normal');
+                return { font: 'helvetica', tx: strip };
+            }
+        }
+
         async function exportCurrentToPDF() {
             const project = projects.find(p => p.id === activeProjectId);
             if (!project || project.laps.length === 0) return alert(t('needRecord'));
 
             const doc = new jsPDF();
-            
+            const { font, tx } = await preparePdfDoc(doc);
+
             doc.setFontSize(22);
             doc.setTextColor(30, 41, 59);
-            doc.text(project.name, 14, 25);
+            doc.text(tx(project.name), 14, 25);
             doc.setFontSize(10);
             doc.setTextColor(100, 116, 139);
-            doc.text(`${t('genAt')}: ${new Date().toLocaleString()}`, 14, 32);
+            doc.text(tx(`${t('genAt')}: ${new Date().toLocaleString()}`), 14, 32);
 
-            const dataMap = {};
-            let totalMs = 0;
-            project.laps.forEach(l => {
-                if (!dataMap[l.category]) dataMap[l.category] = { time: 0, color: l.color };
-                dataMap[l.category].time += l.time;
-                totalMs += l.time;
-            });
+            const { dataMap, totalMs } = categoryStats(project);
 
             doc.setFontSize(14);
             doc.setTextColor(30, 41, 59);
-            doc.text(t('summaryTitle'), 14, 45);
-            
+            doc.text(tx(t('summaryTitle')), 14, 45);
+
             let startAngle = 0;
             const centerX = 50, centerY = 80, radius = 25;
             Object.entries(dataMap).forEach(([cat, data]) => {
@@ -903,15 +1608,15 @@
                 const rgb = hexToRgb(data.color);
                 doc.setFillColor(rgb.r, rgb.g, rgb.b);
                 const segments = 30;
-                for(let i=0; i<segments; i++){
-                    const a1 = startAngle + (i/segments) * sliceAngle;
-                    const a2 = startAngle + ((i+1)/segments) * sliceAngle;
+                for (let i = 0; i < segments; i++) {
+                    const a1 = startAngle + (i / segments) * sliceAngle;
+                    const a2 = startAngle + ((i + 1) / segments) * sliceAngle;
                     doc.triangle(centerX, centerY, centerX + radius * Math.cos(a1), centerY + radius * Math.sin(a1), centerX + radius * Math.cos(a2), centerY + radius * Math.sin(a2), 'F');
                 }
                 startAngle += sliceAngle;
             });
 
-            let legendY = 65;
+            let legendY = 62;
             Object.entries(dataMap).forEach(([cat, data]) => {
                 const rgb = hexToRgb(data.color);
                 doc.setFillColor(rgb.r, rgb.g, rgb.b);
@@ -919,13 +1624,14 @@
                 doc.setTextColor(30, 41, 59);
                 doc.setFontSize(9);
                 const percent = ((data.time / totalMs) * 100).toFixed(1);
-                doc.text(`${cat}: ${formatTime(data.time)} (${percent}%)`, 98, legendY);
+                doc.text(tx(`${cat}: ${formatTime(data.time)} (${percent}%)`), 98, legendY);
                 legendY += 7;
             });
 
+            const tlTitleY = Math.max(120, legendY + 6);
             doc.setFontSize(12);
-            doc.text(t('linearViz'), 14, 120);
-            const tlX = 14, tlY = 125, tlW = 182, tlH = 10;
+            doc.text(tx(t('linearViz')), 14, tlTitleY);
+            const tlX = 14, tlY = tlTitleY + 5, tlW = 182, tlH = 10;
             doc.setDrawColor(200);
             doc.rect(tlX, tlY, tlW, tlH);
             let currentX = tlX;
@@ -937,20 +1643,44 @@
                 currentX += segmentW;
             });
 
+            // Category summary with average duration
+            doc.setFontSize(12);
+            doc.text(tx(t('catSummary')), 14, tlY + tlH + 12);
+            doc.autoTable({
+                startY: tlY + tlH + 15,
+                head: [[tx(t('tableCat')), tx(t('count')), tx(t('avgDur')), tx(t('totalDur')), tx(t('share'))]],
+                body: Object.entries(dataMap).map(([cat, d]) => [
+                    tx(cat), d.count, formatTime(d.avg), formatTime(d.time), ((d.time / totalMs) * 100).toFixed(1) + ' %'
+                ]),
+                foot: [[tx(t('total')), project.laps.length, formatTime(totalMs / project.laps.length), formatTime(totalMs), '100 %']],
+                theme: 'grid',
+                styles: { font, fontSize: 9 },
+                headStyles: { fillColor: [30, 41, 59], fontStyle: 'bold' },
+                footStyles: { fillColor: [241, 245, 249], textColor: [30, 41, 59], fontStyle: 'bold' },
+                columnStyles: { 1: { halign: 'right' }, 2: { halign: 'right' }, 3: { halign: 'right' }, 4: { halign: 'right' } },
+                didParseCell: (d) => {
+                    if (d.section === 'foot' && d.column.index > 0) d.cell.styles.halign = 'right';
+                    if (d.section === 'body' && d.column.index === 0) {
+                        const c = dataMap[Object.keys(dataMap)[d.row.index]];
+                        if (c) { const rgb = hexToRgb(c.color); d.cell.styles.textColor = [rgb.r, rgb.g, rgb.b]; d.cell.styles.fontStyle = 'bold'; }
+                    }
+                }
+            });
+
             const tableData = project.laps.map(lap => [
                 lap.date,
                 lap.timestamp,
-                lap.category,
+                tx(lap.category),
                 lap.timeFormatted
             ]);
 
             doc.autoTable({
-                startY: 145,
-                head: [[t('tableDate'), t('tableTime'), t('tableCat'), t('tableDur')]],
+                startY: doc.lastAutoTable.finalY + 10,
+                head: [[tx(t('tableDate')), tx(t('tableTime')), tx(t('tableCat')), tx(t('tableDur'))]],
                 body: tableData,
                 theme: 'striped',
-                headStyles: { fillColor: [59, 130, 246] },
-                margin: { top: 145 }
+                styles: { font },
+                headStyles: { fillColor: [59, 130, 246], fontStyle: 'bold' }
             });
 
             doc.save(`${project.name.replace(/\s+/g, '_')}_Report.pdf`);
@@ -968,6 +1698,516 @@
         }
 
         function saveData() { localStorage.setItem('tm_pro_projects', JSON.stringify(projects)); }
+
+        // ═════════════════════════ MODE 2: LAP STOPWATCH ═════════════════════════
+        // Data model (localStorage 'tm_pro_sw'):
+        //   { id, name, subject, created, laps:[{id, ms, at}], sw:{running, startedAt, accum} }
+        // Running state is epoch-based → survives page reload / Update button.
+
+        function saveSw() { localStorage.setItem('tm_pro_sw', JSON.stringify(measurements)); }
+        function activeMeas() { return measurements.find(m => m.id === activeMeasId) || null; }
+
+        // Format mm:ss.d — no hours (minutes keep counting past 59), tenths of a second
+        function fmtSw(ms) {
+            ms = Math.max(0, Math.round(ms));
+            const m = Math.floor(ms / 60000);
+            const s = Math.floor((ms % 60000) / 1000);
+            const d = Math.floor((ms % 1000) / 100);
+            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${d}`;
+        }
+        // Statistics format mm:ss.cc — hundredths of a second
+        function fmtSw2(ms) {
+            ms = Math.max(0, Math.round(ms));
+            const m = Math.floor(ms / 60000);
+            const s = Math.floor((ms % 60000) / 1000);
+            const c = Math.floor((ms % 1000) / 10);
+            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(c).padStart(2, '0')}`;
+        }
+        function fmtSigned(ms) { return (ms >= 0 ? '+' : '−') + fmtSw2(Math.abs(ms)); }
+
+        function curLapMs(m) {
+            if (!m || !m.sw) return 0;
+            return m.sw.accum + (m.sw.running ? Date.now() - m.sw.startedAt : 0);
+        }
+        function lapsTotal(m) { return m.laps.reduce((a, l) => a + l.ms, 0); }
+
+        function swStats(laps) {
+            const v = laps.map(l => l.ms);
+            const n = v.length;
+            if (!n) return null;
+            const sum = v.reduce((a, b) => a + b, 0);
+            const avg = sum / n;
+            let max = -Infinity, min = Infinity, maxIdx = 0, minIdx = 0;
+            v.forEach((x, i) => { if (x > max) { max = x; maxIdx = i; } if (x < min) { min = x; minIdx = i; } });
+            const sd = n > 1 ? Math.sqrt(v.reduce((a, x) => a + (x - avg) ** 2, 0) / (n - 1)) : 0;
+            // Linear regression y = a + b·x, x = lap number (1..n)
+            let slope = 0, intercept = avg;
+            if (n > 1) {
+                const xm = (n + 1) / 2;
+                let sxy = 0, sxx = 0;
+                v.forEach((y, i) => { const dx = (i + 1) - xm; sxy += dx * (y - avg); sxx += dx * dx; });
+                slope = sxx ? sxy / sxx : 0;
+                intercept = avg - slope * xm;
+            }
+            return { n, sum, avg, max, min, maxIdx, minIdx, sd, cv: avg ? sd / avg * 100 : 0, slope, intercept };
+        }
+
+        function trendText(st) {
+            if (!st || st.n < 2) return '—';
+            // "stable" if total drift across all laps is < 2 % of average
+            const drift = Math.abs(st.slope * (st.n - 1));
+            const dir = drift < st.avg * 0.02 ? t('trendFlat') : st.slope > 0 ? t('trendUp') : t('trendDown');
+            return `${fmtSigned(st.slope)} ${t('perLap')} (${dir})`;
+        }
+
+        // ── List ────────────────────────────────────────────────────────────
+        function renderSwList() {
+            const list = document.getElementById('sw-list');
+            if (!measurements.length) {
+                list.innerHTML = `<p class="text-xs text-slate-300 italic text-center py-4">${esc(t('noRecords'))}</p>`;
+                return;
+            }
+            list.innerHTML = measurements.map(m => {
+                const st = swStats(m.laps);
+                return `
+                <div class="group relative">
+                    <button onclick="setActiveMeas('${m.id}')" class="w-full text-left p-4 rounded-xl transition border border-transparent ${activeMeasId === m.id ? 'active-project shadow-md' : 'hover:bg-slate-50'}" style="${activeMeasId === m.id ? 'border-left-color:#10b981' : ''}">
+                        <div class="font-black text-sm text-slate-900 truncate pr-6 flex items-center gap-2">${m.sw && m.sw.running ? '<span class="running-dot flex-shrink-0"></span>' : ''}<span class="truncate">${esc(m.name)}</span></div>
+                        ${m.subject ? `<div class="text-[10px] text-slate-400 truncate">${esc(m.subject)}</div>` : ''}
+                        <div class="flex justify-between items-center mt-1">
+                            <div class="text-[9px] text-slate-400 font-bold uppercase">${m.laps.length} ${esc(t('laps'))}</div>
+                            <div class="mono text-[10px] text-emerald-600 font-bold">${st ? 'Ø ' + fmtSw2(st.avg) : ''}</div>
+                        </div>
+                    </button>
+                    <button onclick="deleteMeas('${m.id}', event)"
+                            class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition text-slate-300 hover:text-red-500"
+                            title="${esc(t('confirmDeleteMeas'))}">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                        </svg>
+                    </button>
+                </div>`;
+            }).join('');
+        }
+
+        function setActiveMeas(id) {
+            activeMeasId = id;
+            closeSwReport(true);
+            renderSwList();
+            updateSwUI();
+        }
+
+        function deleteMeas(id, e) {
+            e.stopPropagation();
+            if (!confirm(t('confirmDeleteMeas'))) return;
+            measurements = measurements.filter(m => m.id !== id);
+            if (activeMeasId === id) { activeMeasId = null; closeSwReport(true); }
+            saveSw(); renderSwList(); updateSwUI();
+        }
+
+        // ── Modal: create / edit ────────────────────────────────────────────
+        function openMeasModal(editing) {
+            measModalEditing = !!editing && !!activeMeas();
+            const m = activeMeas();
+            document.getElementById('meas-modal-title').innerText = measModalEditing ? t('editMeas') : t('newMeas');
+            document.getElementById('meas-save').innerText = measModalEditing ? t('save') : t('modalCreate');
+            document.getElementById('meas-name').value = measModalEditing ? m.name : '';
+            document.getElementById('meas-subject').value = measModalEditing ? (m.subject || '') : '';
+            document.getElementById('meas-modal').classList.replace('hidden', 'flex');
+            setTimeout(() => document.getElementById('meas-name').focus(), 50);
+        }
+        function closeMeasModal() { document.getElementById('meas-modal').classList.replace('flex', 'hidden'); }
+
+        function saveMeasModal() {
+            const name = document.getElementById('meas-name').value.trim();
+            const subject = document.getElementById('meas-subject').value.trim();
+            if (!name) { document.getElementById('meas-name').focus(); return; }
+            if (measModalEditing) {
+                const m = activeMeas();
+                m.name = name; m.subject = subject;
+            } else {
+                const m = {
+                    id: 'sw' + Date.now().toString(), name, subject,
+                    created: new Date().toISOString(),
+                    laps: [], sw: { running: false, startedAt: null, accum: 0 }
+                };
+                measurements.unshift(m);
+                activeMeasId = m.id;
+            }
+            saveSw(); closeMeasModal(); closeSwReport(true); renderSwList(); updateSwUI();
+        }
+
+        // ── Stopwatch actions (left = LAP / RESET, right = START / STOP) ─────
+        function swRight() {
+            const m = activeMeas(); if (!m) return;
+            const now = Date.now();
+            if (m.sw.running) {               // STOP
+                m.sw.accum += now - m.sw.startedAt;
+                m.sw.running = false; m.sw.startedAt = null;
+            } else {                          // START / RESUME
+                m.sw.running = true; m.sw.startedAt = now;
+            }
+            saveSw(); updateSwUI(); renderSwList();
+        }
+
+        function swLeft() {
+            const m = activeMeas(); if (!m) return;
+            const now = Date.now();
+            if (m.sw.running) {               // LAP
+                const ms = m.sw.accum + (now - m.sw.startedAt);
+                if (ms < 50) return;          // debounce double tap
+                m.laps.push({ id: now, ms, at: now });
+                m.sw.accum = 0; m.sw.startedAt = now;
+            } else {                          // RESET (discard unfinished lap only)
+                if (m.sw.accum <= 0) return;
+                if (m.sw.accum > 3000 && !confirm(t('confirmReset'))) return;
+                m.sw.accum = 0;
+            }
+            saveSw(); updateSwUI(); renderSwList();
+        }
+
+        function swDeleteLap(lapId) {
+            const m = activeMeas(); if (!m) return;
+            if (!confirm(t('confirmDeleteLap'))) return;
+            m.laps = m.laps.filter(l => l.id !== lapId);
+            saveSw(); updateSwUI(); renderSwList();
+        }
+
+        function swClearLaps() {
+            const m = activeMeas(); if (!m || !m.laps.length) return;
+            if (!confirm(t('confirmClearLaps'))) return;
+            m.laps = [];
+            saveSw(); updateSwUI(); renderSwList();
+        }
+
+        // ── Rendering ───────────────────────────────────────────────────────
+        function updateSwUI() {
+            const m = activeMeas();
+            const area = document.getElementById('sw-area');
+            const empty = document.getElementById('sw-empty');
+            const reportOpen = !document.getElementById('sw-report').classList.contains('hidden');
+            if (!m) {
+                area.classList.add('hidden');
+                if (!reportOpen) empty.classList.remove('hidden');
+                stopSwTicker();
+                return;
+            }
+            empty.classList.add('hidden');
+            if (!reportOpen) area.classList.remove('hidden');
+
+            document.getElementById('sw-name').innerText = m.name;
+            document.getElementById('sw-subject').innerText = m.subject ? `${t('subject')}: ${m.subject}` : '';
+
+            const L = document.getElementById('sw-left'), R = document.getElementById('sw-right');
+            const label = document.getElementById('sw-label');
+            if (m.sw.running) {
+                L.innerText = t('lap'); L.disabled = false;
+                R.innerText = t('stop'); R.className = 'sw-btn sw-btn-red';
+                label.innerText = `${t('lapWord')} ${m.laps.length + 1}`;
+                label.style.color = '#34d399';
+            } else {
+                L.innerText = m.sw.accum > 0 ? t('reset') : t('lap');
+                L.disabled = !(m.sw.accum > 0);
+                R.innerText = t('start'); R.className = 'sw-btn sw-btn-green';
+                label.innerText = m.sw.accum > 0 ? `${t('stopped')} · ${t('lapWord')} ${m.laps.length + 1}` : t('ready');
+                label.style.color = m.sw.accum > 0 ? '#fbbf24' : '#34d399';
+            }
+
+            renderSwLaps();
+            renderSwTick();
+            if (m.sw.running && currentView === 'sw') startSwTicker(); else stopSwTicker();
+        }
+
+        function renderSwTick() {
+            const m = activeMeas(); if (!m) return;
+            const cur = curLapMs(m);
+            document.getElementById('sw-display').innerText = fmtSw(cur);
+            document.getElementById('sw-total').innerText = fmtSw(lapsTotal(m) + cur);
+            const curRow = document.getElementById('sw-cur-lap');
+            if (curRow) curRow.innerText = fmtSw(cur);
+        }
+
+        function startSwTicker() { if (!swTimer) swTimer = setInterval(renderSwTick, 50); }
+        function stopSwTicker() { if (swTimer) { clearInterval(swTimer); swTimer = null; } }
+
+        function renderSwLaps() {
+            const m = activeMeas();
+            const box = document.getElementById('sw-laps');
+            const mini = document.getElementById('sw-mini');
+            const st = swStats(m.laps);
+            mini.innerHTML = st ? `Ø ${fmtSw2(st.avg)}<br><span class="text-emerald-400">▼ ${fmtSw2(st.min)}</span><br><span class="text-red-400">▲ ${fmtSw2(st.max)}</span>` : '';
+
+            const showCur = m.sw.running || m.sw.accum > 0;
+            if (!m.laps.length && !showCur) {
+                box.innerHTML = `<div class="py-10 text-center text-slate-300 italic text-xs">${esc(t('noLaps'))}</div>`;
+                return;
+            }
+            let html = '';
+            if (showCur) {
+                html += `
+                <div class="flex items-center justify-between py-3 px-2">
+                    <span class="text-sm font-bold text-slate-400">${esc(t('lapWord'))} ${m.laps.length + 1}</span>
+                    <span id="sw-cur-lap" class="mono text-base font-bold text-slate-400">${fmtSw(curLapMs(m))}</span>
+                </div>`;
+            }
+            const markExtremes = m.laps.length >= 2;
+            for (let i = m.laps.length - 1; i >= 0; i--) {
+                const l = m.laps[i];
+                const isMax = markExtremes && st.maxIdx === i, isMin = markExtremes && st.minIdx === i;
+                const color = isMin ? 'text-emerald-600' : isMax ? 'text-red-600' : 'text-slate-800';
+                const d = l.ms - st.avg;
+                const dCls = Math.abs(d) < 5 ? 'text-slate-300' : d > 0 ? 'text-red-400' : 'text-emerald-500';
+                html += `
+                <div class="group flex items-center justify-between py-3 px-2 hover:bg-slate-50 rounded-lg">
+                    <span class="text-sm font-bold ${color} flex items-center gap-2">${esc(t('lapWord'))} ${i + 1}
+                        ${isMin ? '<span class="text-[9px] font-black bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded">MIN</span>' : ''}
+                        ${isMax ? '<span class="text-[9px] font-black bg-red-50 text-red-600 px-1.5 py-0.5 rounded">MAX</span>' : ''}
+                    </span>
+                    <span class="flex items-center gap-4">
+                        <span class="mono text-[11px] font-bold ${dCls} hidden sm:inline">${fmtSigned(d)}</span>
+                        <span class="mono text-base font-bold ${color}">${fmtSw(l.ms)}</span>
+                        <button onclick="swDeleteLap(${l.id})" class="text-slate-200 hover:text-red-500 transition opacity-0 group-hover:opacity-100" title="${esc(t('confirmDeleteLap'))}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                        </button>
+                    </span>
+                </div>`;
+            }
+            box.innerHTML = html;
+        }
+
+        // Keyboard: Space = Lap, Enter = Start/Stop (only in stopwatch view, not while typing)
+        document.addEventListener('keydown', (e) => {
+            if (currentView !== 'sw' || !activeMeas()) return;
+            const tag = (e.target.tagName || '').toLowerCase();
+            if (['input', 'textarea', 'select'].includes(tag)) return;
+            if (!document.getElementById('meas-modal').classList.contains('hidden')) return;
+            if (!document.getElementById('sw-report').classList.contains('hidden')) return;
+            if (e.code === 'Space') { e.preventDefault(); if (activeMeas().sw.running) swLeft(); }
+            else if (e.code === 'Enter' || e.code === 'NumpadEnter') { e.preventDefault(); swRight(); }
+        });
+
+        // Modal Enter key
+        ['meas-name', 'meas-subject'].forEach(id => document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') saveMeasModal(); }));
+        document.getElementById('modal-project-name').addEventListener('keydown', e => { if (e.key === 'Enter') createNewProject(); });
+
+        // ── Report ──────────────────────────────────────────────────────────
+        const C_ABOVE = '#f87171', C_BELOW = '#34d399', C_MAX = '#dc2626', C_MIN = '#059669', C_AVG = '#334155', C_TREND = '#3b82f6';
+
+        // Draws MAX / MIN tags above the extreme bars
+        const extremeLabelPlugin = {
+            id: 'extremeLabels',
+            afterDatasetsDraw(chart) {
+                const st = chart.$swStats; if (!st || st.n < 2) return;
+                const meta = chart.getDatasetMeta(0); const ctx = chart.ctx;
+                ctx.save();
+                ctx.font = 'bold 10px JetBrains Mono, monospace';
+                ctx.textAlign = 'center';
+                [[st.maxIdx, 'MAX', C_MAX], [st.minIdx, 'MIN', C_MIN]].forEach(([i, txt, col]) => {
+                    const el = meta.data[i]; if (!el) return;
+                    ctx.fillStyle = col;
+                    ctx.fillText(txt, el.x, el.y - 18);
+                    ctx.font = 'bold 9px JetBrains Mono, monospace';
+                    ctx.fillText(fmtSw2(chart.data.datasets[0].data[i] * 1000), el.x, el.y - 6);
+                    ctx.font = 'bold 10px JetBrains Mono, monospace';
+                });
+                ctx.restore();
+            }
+        };
+        const whiteBgPlugin = {
+            id: 'whiteBg',
+            beforeDraw(chart) { const c = chart.ctx; c.save(); c.fillStyle = '#fff'; c.fillRect(0, 0, chart.width, chart.height); c.restore(); }
+        };
+
+        function showSwReport() {
+            const m = activeMeas(); if (!m) return;
+            if (!m.laps.length) { alert(t('needLaps')); return; }
+            const st = swStats(m.laps);
+
+            document.getElementById('sw-area').classList.add('hidden');
+            document.getElementById('sw-empty').classList.add('hidden');
+            document.getElementById('sw-report').classList.remove('hidden');
+            document.getElementById('swr-title').innerText = m.name;
+            document.getElementById('swr-subject').innerText = [m.subject ? `${t('subject')}: ${m.subject}` : '', new Date(m.created).toLocaleDateString()].filter(Boolean).join(' · ');
+
+            const tile = (lbl, val, sub, cls) => `
+                <div class="rounded-2xl p-4 ${cls}">
+                    <div class="text-[10px] font-black uppercase tracking-widest opacity-70">${esc(lbl)}</div>
+                    <div class="mono text-xl sm:text-2xl font-bold mt-1">${val}</div>
+                    <div class="text-[10px] font-bold opacity-60 mt-0.5">${sub}</div>
+                </div>`;
+            document.getElementById('swr-tiles').innerHTML =
+                tile(t('avg'), fmtSw2(st.avg), `σ ${fmtSw2(st.sd)}`, 'bg-slate-900 text-white') +
+                tile(t('max'), fmtSw2(st.max), `${esc(t('lapWord'))} ${st.maxIdx + 1} · ${fmtSigned(st.max - st.avg)}`, 'bg-red-50 text-red-700') +
+                tile(t('min'), fmtSw2(st.min), `${esc(t('lapWord'))} ${st.minIdx + 1} · ${fmtSigned(st.min - st.avg)}`, 'bg-emerald-50 text-emerald-700') +
+                tile(t('lapsCount'), String(st.n), `${esc(t('total'))} ${fmtSw2(st.sum)}`, 'bg-blue-50 text-blue-700');
+
+            document.getElementById('swr-secondary').innerHTML = [
+                `${esc(t('stdDev'))}: <span class="mono text-slate-600">${fmtSw2(st.sd)}</span>`,
+                `${esc(t('cv'))}: <span class="mono text-slate-600">${st.cv.toFixed(1)} %</span>`,
+                `${esc(t('trend'))}: <span class="mono text-slate-600">${esc(trendText(st))}</span>`
+            ].join('');
+
+            // Chart
+            const labels = m.laps.map((_, i) => String(i + 1));
+            const data = m.laps.map(l => l.ms / 1000);
+            const colors = m.laps.map((l, i) =>
+                (st.n >= 2 && i === st.maxIdx) ? C_MAX : (st.n >= 2 && i === st.minIdx) ? C_MIN : l.ms > st.avg ? C_ABOVE : C_BELOW);
+            const avgLine = m.laps.map(() => st.avg / 1000);
+            const trendLine = m.laps.map((_, i) => (st.intercept + st.slope * (i + 1)) / 1000);
+
+            if (lapChart) lapChart.destroy();
+            lapChart = new Chart(document.getElementById('chart-laps').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [
+                        { type: 'bar', label: t('lapChart'), data, backgroundColor: colors, borderRadius: 4, maxBarThickness: 48, order: 3 },
+                        { type: 'line', label: t('avgLine'), data: avgLine, borderColor: C_AVG, borderWidth: 2, borderDash: [6, 4], pointRadius: 0, order: 1 },
+                        { type: 'line', label: t('trendLine'), data: trendLine, borderColor: C_TREND, borderWidth: 2.5, pointRadius: 0, order: 2, hidden: st.n < 2 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, animation: false,
+                    layout: { padding: { top: 30 } },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${fmtSw2(c.parsed.y * 1000)}` } }
+                    },
+                    scales: {
+                        x: { grid: { display: false }, title: { display: true, text: t('lapWord'), font: { weight: 'bold', size: 11 } } },
+                        y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { callback: v => fmtSw2(v * 1000) } }
+                    }
+                },
+                plugins: [extremeLabelPlugin, whiteBgPlugin]
+            });
+            lapChart.$swStats = st;
+            lapChart.update();
+
+            const sw = (c, dash) => dash
+                ? `<span class="inline-block w-5 border-t-2 border-dashed align-middle" style="border-color:${c}"></span>`
+                : `<span class="inline-block w-3 h-3 rounded-sm align-middle" style="background:${c}"></span>`;
+            document.getElementById('swr-legend').innerHTML = [
+                `${sw(C_BELOW)} ${esc(t('belowAvg'))}`,
+                `${sw(C_ABOVE)} ${esc(t('aboveAvg'))}`,
+                `${sw(C_MIN)} MIN`, `${sw(C_MAX)} MAX`,
+                `${sw(C_AVG, true)} ${esc(t('avgLine'))} ${fmtSw2(st.avg)}`,
+                st.n >= 2 ? `<span class="inline-block w-5 border-t-[3px] align-middle" style="border-color:${C_TREND}"></span> ${esc(t('trendLine'))}` : ''
+            ].filter(Boolean).map(x => `<span class="flex items-center gap-1.5">${x}</span>`).join('');
+
+            // Table
+            document.getElementById('swr-thead').innerHTML = ['#', t('lapWord'), t('deltaAvg'), '%', t('split'), t('clockTime')]
+                .map((h, i) => `<th class="py-2 px-2 ${i > 0 ? 'text-right' : ''}">${esc(h)}</th>`).join('');
+            let cum = 0;
+            document.getElementById('swr-tbody').innerHTML = m.laps.map((l, i) => {
+                cum += l.ms;
+                const d = l.ms - st.avg;
+                const cls = (st.n >= 2 && i === st.maxIdx) ? 'text-red-600' : (st.n >= 2 && i === st.minIdx) ? 'text-emerald-600' : 'text-slate-700';
+                const dCls = d > 0 ? 'text-red-500' : 'text-emerald-600';
+                return `<tr class="border-b border-slate-50 hover:bg-slate-50">
+                    <td class="py-2 px-2 font-bold text-slate-400">${i + 1}</td>
+                    <td class="py-2 px-2 text-right mono font-bold ${cls}">${fmtSw2(l.ms)}</td>
+                    <td class="py-2 px-2 text-right mono ${dCls}">${fmtSigned(d)}</td>
+                    <td class="py-2 px-2 text-right mono ${dCls}">${(d / st.avg * 100 >= 0 ? '+' : '')}${(d / st.avg * 100).toFixed(1)}</td>
+                    <td class="py-2 px-2 text-right mono text-slate-500">${fmtSw2(cum)}</td>
+                    <td class="py-2 px-2 text-right mono text-slate-400">${new Date(l.at).toLocaleTimeString('sk-SK')}</td>
+                </tr>`;
+            }).join('');
+            stopSwTicker();
+        }
+
+        function closeSwReport(silent) {
+            document.getElementById('sw-report').classList.add('hidden');
+            if (!silent) updateSwUI();
+        }
+
+        async function exportSwPDF() {
+            const m = activeMeas(); if (!m || !m.laps.length) return alert(t('needLaps'));
+            const st = swStats(m.laps);
+            const doc = new jsPDF();
+            const { font, tx } = await preparePdfDoc(doc);
+
+            doc.setFontSize(22); doc.setTextColor(30, 41, 59);
+            doc.text(tx(m.name), 14, 22);
+            let y = 29;
+            doc.setFontSize(11); doc.setTextColor(71, 85, 105);
+            if (m.subject) { doc.text(tx(`${t('subject')}: ${m.subject}`), 14, y); y += 6; }
+            doc.setFontSize(9); doc.setTextColor(100, 116, 139);
+            doc.text(tx(`${t('genAt')}: ${new Date().toLocaleString()}`), 14, y); y += 7;
+
+            // KPI boxes
+            const boxes = [
+                [t('avg'), fmtSw2(st.avg), `σ ${fmtSw2(st.sd)}`, [30, 41, 59], [255, 255, 255]],
+                [t('max'), fmtSw2(st.max), `${t('lapWord')} ${st.maxIdx + 1}`, [254, 226, 226], [185, 28, 28]],
+                [t('min'), fmtSw2(st.min), `${t('lapWord')} ${st.minIdx + 1}`, [209, 250, 229], [4, 120, 87]],
+                [t('lapsCount'), String(st.n), `${t('total')} ${fmtSw2(st.sum)}`, [219, 234, 254], [29, 78, 216]]
+            ];
+            const bw = 43.25, bh = 20, gap = 3.66;
+            boxes.forEach(([lbl, val, sub, bg, fg], i) => {
+                const x = 14 + i * (bw + gap);
+                doc.setFillColor(...bg); doc.roundedRect(x, y, bw, bh, 2.5, 2.5, 'F');
+                doc.setTextColor(...fg);
+                doc.setFont(font, 'bold'); doc.setFontSize(7); doc.text(tx(lbl.toUpperCase()), x + 3.5, y + 5.5);
+                doc.setFontSize(14); doc.text(tx(val), x + 3.5, y + 12.5);
+                doc.setFont(font, 'normal'); doc.setFontSize(7); doc.text(tx(sub), x + 3.5, y + 17.5);
+            });
+            y += bh + 6;
+            doc.setFontSize(8.5); doc.setTextColor(71, 85, 105);
+            doc.text(tx(`${t('stdDev')}: ${fmtSw2(st.sd)}    ${t('cv')}: ${st.cv.toFixed(1)} %    ${t('trend')}: ${trendText(st)}`), 14, y);
+            y += 6;
+
+            // Chart image (rendered from on-screen Chart.js canvas)
+            doc.setFont(font, 'bold'); doc.setFontSize(12); doc.setTextColor(30, 41, 59);
+            doc.text(tx(t('lapChart')), 14, y + 4); y += 7;
+            doc.setFont(font, 'normal');
+            if (lapChart) {
+                const img = lapChart.toBase64Image('image/png', 1);
+                const w = 182, h = Math.min(90, w * lapChart.height / lapChart.width);
+                doc.addImage(img, 'PNG', 14, y, w, h);
+                y += h + 3;
+            }
+            // Legend
+            const leg = [[C_BELOW, t('belowAvg')], [C_ABOVE, t('aboveAvg')], [C_MIN, 'MIN'], [C_MAX, 'MAX'], [C_AVG, `${t('avgLine')} (- -)`], [C_TREND, t('trendLine')]];
+            let lx = 14; doc.setFontSize(7.5);
+            leg.forEach(([c, lbl]) => {
+                if (lbl === t('trendLine') && st.n < 2) return;
+                const rgb = hexToRgb(c); doc.setFillColor(rgb.r, rgb.g, rgb.b); doc.rect(lx, y - 2.4, 3, 3, 'F');
+                doc.setTextColor(71, 85, 105); doc.text(tx(lbl), lx + 4.5, y);
+                lx += 7 + doc.getTextWidth(tx(lbl)) + 3;
+            });
+            y += 6;
+
+            // Lap table
+            let cum = 0;
+            doc.autoTable({
+                startY: y,
+                head: [['#', tx(t('lapWord')), tx(t('deltaAvg')), '%', tx(t('split')), tx(t('clockTime'))]],
+                body: m.laps.map((l, i) => {
+                    cum += l.ms; const d = l.ms - st.avg;
+                    return [i + 1, fmtSw2(l.ms), tx(fmtSigned(d)), ((d >= 0 ? '+' : '') + (d / st.avg * 100).toFixed(1)), fmtSw2(cum), new Date(l.at).toLocaleTimeString('sk-SK')];
+                }),
+                theme: 'striped',
+                styles: { font, fontSize: 8.5 },
+                headStyles: { fillColor: [5, 150, 105], fontStyle: 'bold' },
+                columnStyles: { 0: { cellWidth: 12 }, 1: { halign: 'right', fontStyle: 'bold' }, 2: { halign: 'right' }, 3: { halign: 'right' }, 4: { halign: 'right' }, 5: { halign: 'right' } },
+                didParseCell: (d) => {
+                    if (d.section !== 'body') return;
+                    const i = d.row.index;
+                    if (d.column.index === 1 && st.n >= 2) {
+                        if (i === st.maxIdx) d.cell.styles.textColor = [220, 38, 38];
+                        if (i === st.minIdx) d.cell.styles.textColor = [5, 150, 105];
+                    }
+                    if (d.column.index === 2 || d.column.index === 3) {
+                        d.cell.styles.textColor = m.laps[i].ms > st.avg ? [220, 38, 38] : [5, 150, 105];
+                    }
+                }
+            });
+
+            const fname = [m.name, m.subject].filter(Boolean).join('_').replace(/[^\p{L}\p{N}_-]+/gu, '_');
+            doc.save(`${fname}_Stopwatch_Report.pdf`);
+        }
+
+        // Keep the display honest when the tab comes back from background
+        document.addEventListener('visibilitychange', () => { if (!document.hidden && currentView === 'sw') renderSwTick(); });
 
         init();
     </script>
