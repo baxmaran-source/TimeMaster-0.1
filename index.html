@@ -130,6 +130,9 @@
                 <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
                     <h2 id="txt-my-projects" class="font-bold text-sm mb-4 text-slate-400 uppercase tracking-widest">My Projects</h2>
                     <div id="project-list" class="space-y-2 max-h-[60vh] overflow-y-auto no-scrollbar"></div>
+                    <button onclick="triggerImport()" class="mt-4 w-full border-2 border-dashed border-slate-200 hover:border-blue-400 hover:text-blue-600 text-slate-400 rounded-xl py-3 text-[11px] font-black uppercase flex items-center justify-center gap-2 transition">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 15V3m0 0-4 4m4-4 4 4"/><path d="M4 17v3h16v-3"/></svg> <span class="txt-import-csv">Import CSV</span>
+                    </button>
                 </div>
             </div>
 
@@ -140,6 +143,8 @@
                     <div class="flex justify-between items-center mb-8">
                         <h2 class="text-2xl font-black text-slate-900" id="analysis-project-title">Evaluation</h2>
                         <div class="flex gap-2">
+                            <button onclick="exportStudyXLSX()" class="btn-xlsx p-2 bg-emerald-600 text-white rounded-full hover:bg-emerald-700 transition" title="Excel"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 8l8 8M16 8l-8 8"/></svg></button>
+                            <button onclick="exportStudyCSV()" class="btn-csv p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 transition" title="CSV"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 17v3h16v-3"/></svg></button>
                             <button id="btn-study-pdf" onclick="exportCurrentToPDF()" class="p-2 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition" title="Export to PDF">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                             </button>
@@ -166,6 +171,12 @@
                             <p id="active-project-desc" class="text-slate-400 text-sm mt-2 max-w-md"></p>
                         </div>
                         <div class="flex gap-2">
+                            <button onclick="exportStudyXLSX()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-emerald-700 transition flex items-center gap-2">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 8l8 8M16 8l-8 8"/></svg> <span class="txt-export-xlsx">Excel</span>
+                            </button>
+                            <button onclick="exportStudyCSV()" class="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-50 transition flex items-center gap-2">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 17v3h16v-3"/></svg> <span class="txt-export-csv">CSV</span>
+                            </button>
                             <button onclick="showAnalysis()" class="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-800 transition flex items-center gap-2">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
                                 <span id="txt-evaluate">EVALUATE</span>
@@ -231,6 +242,9 @@
                 <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
                     <h2 id="txt-my-meas" class="font-bold text-sm mb-4 text-slate-400 uppercase tracking-widest">My Measurements</h2>
                     <div id="sw-list" class="space-y-2 max-h-[60vh] overflow-y-auto no-scrollbar"></div>
+                    <button onclick="triggerImport()" class="mt-4 w-full border-2 border-dashed border-slate-200 hover:border-emerald-400 hover:text-emerald-600 text-slate-400 rounded-xl py-3 text-[11px] font-black uppercase flex items-center justify-center gap-2 transition">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 15V3m0 0-4 4m4-4 4 4"/><path d="M4 17v3h16v-3"/></svg> <span class="txt-import-csv">Import CSV</span>
+                    </button>
                 </div>
             </div>
 
@@ -243,6 +257,8 @@
                             <p class="text-sm text-slate-400 mt-1" id="swr-subject"></p>
                         </div>
                         <div class="flex gap-2 flex-shrink-0">
+                            <button onclick="exportSwXLSX()" class="btn-xlsx p-2 bg-emerald-600 text-white rounded-full hover:bg-emerald-700 transition" title="Excel"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 8l8 8M16 8l-8 8"/></svg></button>
+                            <button onclick="exportSwCSV()" class="btn-csv p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 transition" title="CSV"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 17v3h16v-3"/></svg></button>
                             <button id="btn-sw-pdf" onclick="exportSwPDF()" class="p-2 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition" title="Export to PDF">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                             </button>
@@ -281,10 +297,18 @@
                             </div>
                             <p id="sw-subject" class="text-slate-400 text-sm mt-2"></p>
                         </div>
+                        <div class="flex gap-2 flex-shrink-0">
+                        <button onclick="exportSwXLSX()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-emerald-700 transition flex items-center gap-2">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 8l8 8M16 8l-8 8"/></svg> <span class="txt-export-xlsx">Excel</span>
+                            </button>
+                            <button onclick="exportSwCSV()" class="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-50 transition flex items-center gap-2">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 17v3h16v-3"/></svg> <span class="txt-export-csv">CSV</span>
+                        </button>
                         <button onclick="showSwReport()" class="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-800 transition flex items-center gap-2 flex-shrink-0">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 3v18h18"/><path d="M7 16v-4M11 16V8M15 16v-6M19 16V6"/></svg>
                             <span id="txt-report">REPORT</span>
                         </button>
+                        </div>
                     </div>
 
                     <!-- Display -->
@@ -351,6 +375,27 @@
         </div>
     </div>
 
+    <!-- Import conflict modal -->
+    <div id="import-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-[2rem] w-full max-w-md p-8 shadow-2xl">
+            <h2 id="imp-title" class="text-2xl font-black mb-3">Import</h2>
+            <p id="imp-text" class="text-sm text-slate-500 mb-6"></p>
+            <div class="space-y-2">
+                <button onclick="resolveImport('overwrite')" class="w-full text-left bg-slate-50 hover:bg-red-50 border border-slate-200 rounded-2xl px-5 py-4">
+                    <div id="imp-ow" class="font-black text-sm text-slate-900"></div><div id="imp-ow-d" class="text-[11px] text-slate-400"></div>
+                </button>
+                <button onclick="resolveImport('append')" class="w-full text-left bg-slate-50 hover:bg-blue-50 border border-slate-200 rounded-2xl px-5 py-4">
+                    <div id="imp-ap" class="font-black text-sm text-slate-900"></div><div id="imp-ap-d" class="text-[11px] text-slate-400"></div>
+                </button>
+                <button onclick="resolveImport('copy')" class="w-full text-left bg-slate-50 hover:bg-emerald-50 border border-slate-200 rounded-2xl px-5 py-4">
+                    <div id="imp-cp" class="font-black text-sm text-slate-900"></div><div id="imp-cp-d" class="text-[11px] text-slate-400"></div>
+                </button>
+                <button onclick="resolveImport(null)" id="imp-cancel" class="w-full bg-slate-100 py-3 rounded-2xl font-black text-slate-500 uppercase text-xs mt-2">Cancel</button>
+            </div>
+        </div>
+    </div>
+    <input type="file" id="csv-file-input" accept=".csv,.xlsx,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="hidden" onchange="handleImportFile(this)">
+
     <!-- Measurement Modal (mode 2) -->
     <div id="meas-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-[2rem] w-full max-w-md p-8 shadow-2xl">
@@ -373,8 +418,9 @@
     </div>
 
     <script>
-        const APP_VERSION = '2.2';
+        const APP_VERSION = '2.6';
         window.jsPDF = window.jspdf.jsPDF;
+        const EXCELJS_URL = 'https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
 
         const FIXED_COLORS = [
             '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
@@ -500,7 +546,40 @@
                 confirmReset: "Discard the current unfinished lap?",
                 needLaps: "Record at least one lap first.",
                 subject: "Subject",
-                noLaps: "No laps yet — press START, then LAP at each cycle point."
+                noLaps: "No laps yet — press START, then LAP at each cycle point.",
+                exportCsv: "Export CSV",
+                importCsv: "Import CSV",
+                impTitle: "Already exists",
+                impText: "“{name}” already exists in the app. What should happen with the imported data?",
+                impOw: "Overwrite",
+                impOwD: "Replace the existing data with the file content",
+                impAp: "Add missing records",
+                impApD: "Keep existing data and add records that are not in it yet",
+                impCp: "Create a copy",
+                impCpD: "Import as a new, separate item",
+                copySuffix: "copy",
+                impOk: "Imported: {name} ({n} records)",
+                impErr: "The file could not be read as a TimeMaster CSV export.",
+                impNoRows: "No valid records found in the file.",
+                statistics: "Statistics",
+                note: "Note",
+                created: "Created",
+                exportXlsx: "Excel",
+                importCsv: "Import CSV / Excel",
+                exportCsv: "CSV",
+                shReport: "Report",
+                shLegend: "Legend",
+                tableColor: "Color",
+                lgTitle: "Legend – columns of the detail table",
+                lgNo: "Column",
+                lgCol: "Header",
+                lgExample: "Example (row 1)",
+                lgMeaning: "Meaning",
+                lgPurpose: "Used for",
+                lgNoteSw: "Import needs only the columns # and Lap. Lap may be entered as 00:12.47, 0:12.47 or 12.47 (seconds). Everything else is recalculated.",
+                lgNoteStudy: "Import needs only the columns #, Category and Duration. Duration may be entered as 00:04.3, 0:04.3 or 4.3 (seconds).",
+                lgHowTo: "How to continue a measurement: Import CSV / Excel in the app → the measurement opens → press START.",
+                xlsxErr: "Excel library could not be loaded (internet connection needed for the first use)."
             },
             de: {
                 subtitle: "Industrielle Zeitstudien",
@@ -618,7 +697,40 @@
                 confirmReset: "Aktuelle, nicht abgeschlossene Runde verwerfen?",
                 needLaps: "Bitte zuerst mindestens eine Runde erfassen.",
                 subject: "Objekt",
-                noLaps: "Noch keine Runden — START drücken, dann RUNDE an jedem Zykluspunkt."
+                noLaps: "Noch keine Runden — START drücken, dann RUNDE an jedem Zykluspunkt.",
+                exportCsv: "CSV exportieren",
+                importCsv: "CSV importieren",
+                impTitle: "Bereits vorhanden",
+                impText: "„{name}“ ist in der App bereits vorhanden. Was soll mit den importierten Daten geschehen?",
+                impOw: "Überschreiben",
+                impOwD: "Vorhandene Daten durch den Dateiinhalt ersetzen",
+                impAp: "Fehlende Einträge hinzufügen",
+                impApD: "Vorhandene Daten behalten und nur neue Einträge ergänzen",
+                impCp: "Kopie erstellen",
+                impCpD: "Als neuen, separaten Eintrag importieren",
+                copySuffix: "Kopie",
+                impOk: "Importiert: {name} ({n} Einträge)",
+                impErr: "Die Datei konnte nicht als TimeMaster-CSV-Export gelesen werden.",
+                impNoRows: "Keine gültigen Einträge in der Datei gefunden.",
+                statistics: "Statistik",
+                note: "Hinweis",
+                created: "Erstellt",
+                exportXlsx: "Excel",
+                importCsv: "Import CSV / Excel",
+                exportCsv: "CSV",
+                shReport: "Bericht",
+                shLegend: "Legende",
+                tableColor: "Farbe",
+                lgTitle: "Legende – Spalten der Detailtabelle",
+                lgNo: "Spalte",
+                lgCol: "Überschrift",
+                lgExample: "Beispiel (Zeile 1)",
+                lgMeaning: "Bedeutung",
+                lgPurpose: "Verwendung",
+                lgNoteSw: "Für den Import genügen die Spalten # und Runde. Die Runde kann als 00:12.47, 0:12.47 oder 12.47 (Sekunden) eingegeben werden. Alles andere wird neu berechnet.",
+                lgNoteStudy: "Für den Import genügen die Spalten #, Kategorie und Dauer. Die Dauer kann als 00:04.3, 0:04.3 oder 4.3 (Sekunden) eingegeben werden.",
+                lgHowTo: "Messung fortsetzen: In der App CSV / Excel importieren → die Messung öffnet sich → START drücken.",
+                xlsxErr: "Die Excel-Bibliothek konnte nicht geladen werden (bei der ersten Nutzung ist Internet nötig)."
             },
             sk: {
                 subtitle: "Priemyselné časové štúdie",
@@ -736,7 +848,40 @@
                 confirmReset: "Zahodiť aktuálne nedokončené kolo?",
                 needLaps: "Najprv zaznamenajte aspoň jedno kolo.",
                 subject: "Subjekt",
-                noLaps: "Zatiaľ žiadne kolá — stlačte ŠTART a potom KOLO v každom bode cyklu."
+                noLaps: "Zatiaľ žiadne kolá — stlačte ŠTART a potom KOLO v každom bode cyklu.",
+                exportCsv: "Export CSV",
+                importCsv: "Import CSV",
+                impTitle: "Už existuje",
+                impText: "„{name}“ už v aplikácii existuje. Čo sa má stať s importovanými dátami?",
+                impOw: "Prepísať",
+                impOwD: "Nahradiť existujúce dáta obsahom súboru",
+                impAp: "Doplniť chýbajúce záznamy",
+                impApD: "Ponechať existujúce dáta a pridať len záznamy, ktoré v nich ešte nie sú",
+                impCp: "Vytvoriť kópiu",
+                impCpD: "Importovať ako nové, samostatné meranie",
+                copySuffix: "kópia",
+                impOk: "Importované: {name} ({n} záznamov)",
+                impErr: "Súbor sa nepodarilo načítať ako CSV export z TimeMaster.",
+                impNoRows: "V súbore sa nenašli žiadne platné záznamy.",
+                statistics: "Štatistiky",
+                note: "Poznámka",
+                created: "Vytvorené",
+                exportXlsx: "Excel",
+                importCsv: "Import CSV / Excel",
+                exportCsv: "CSV",
+                shReport: "Report",
+                shLegend: "Legenda",
+                tableColor: "Farba",
+                lgTitle: "Legenda – stĺpce tabuľky detailu",
+                lgNo: "Stĺpec",
+                lgCol: "Hlavička",
+                lgExample: "Príklad (riadok 1)",
+                lgMeaning: "Význam",
+                lgPurpose: "Na čo slúži",
+                lgNoteSw: "Pre import stačia stĺpce # a Kolo. Kolo môže byť zadané ako 00:12.47, 0:12.47 alebo 12.47 (sekundy). Všetko ostatné sa dopočíta.",
+                lgNoteStudy: "Pre import stačia stĺpce #, Kategória a Trvanie. Trvanie môže byť zadané ako 00:04.3, 0:04.3 alebo 4.3 (sekundy).",
+                lgHowTo: "Pokračovanie v meraní: v aplikácii Import CSV / Excel → meranie sa otvorí → stlačiť ŠTART.",
+                xlsxErr: "Knižnicu pre Excel sa nepodarilo načítať (pri prvom použití je potrebný internet)."
             },
             es: {
                 subtitle: "Estudios de Tiempos Industriales",
@@ -854,7 +999,40 @@
                 confirmReset: "¿Descartar la vuelta actual sin terminar?",
                 needLaps: "Registre primero al menos una vuelta.",
                 subject: "Objeto",
-                noLaps: "Aún no hay vueltas — pulse INICIAR y luego VUELTA en cada punto del ciclo."
+                noLaps: "Aún no hay vueltas — pulse INICIAR y luego VUELTA en cada punto del ciclo.",
+                exportCsv: "Exportar CSV",
+                importCsv: "Importar CSV",
+                impTitle: "Ya existe",
+                impText: "«{name}» ya existe en la aplicación. ¿Qué hacer con los datos importados?",
+                impOw: "Sobrescribir",
+                impOwD: "Reemplazar los datos existentes por el contenido del archivo",
+                impAp: "Añadir registros faltantes",
+                impApD: "Conservar los datos existentes y añadir solo los registros nuevos",
+                impCp: "Crear una copia",
+                impCpD: "Importar como un elemento nuevo e independiente",
+                copySuffix: "copia",
+                impOk: "Importado: {name} ({n} registros)",
+                impErr: "No se pudo leer el archivo como exportación CSV de TimeMaster.",
+                impNoRows: "No se encontraron registros válidos en el archivo.",
+                statistics: "Estadísticas",
+                note: "Nota",
+                created: "Creado",
+                exportXlsx: "Excel",
+                importCsv: "Importar CSV / Excel",
+                exportCsv: "CSV",
+                shReport: "Informe",
+                shLegend: "Leyenda",
+                tableColor: "Color",
+                lgTitle: "Leyenda – columnas de la tabla de detalle",
+                lgNo: "Columna",
+                lgCol: "Encabezado",
+                lgExample: "Ejemplo (fila 1)",
+                lgMeaning: "Significado",
+                lgPurpose: "Uso",
+                lgNoteSw: "Para importar bastan las columnas # y Vuelta. La vuelta puede escribirse como 00:12.47, 0:12.47 o 12.47 (segundos). Todo lo demás se recalcula.",
+                lgNoteStudy: "Para importar bastan las columnas #, Categoría y Duración. La duración puede escribirse como 00:04.3, 0:04.3 o 4.3 (segundos).",
+                lgHowTo: "Continuar una medición: en la aplicación Importar CSV / Excel → se abre la medición → pulsar INICIAR.",
+                xlsxErr: "No se pudo cargar la librería de Excel (se necesita internet en el primer uso)."
             },
             pt: {
                 subtitle: "Estudos de Tempo Industrial",
@@ -972,7 +1150,40 @@
                 confirmReset: "Descartar a volta atual não concluída?",
                 needLaps: "Registe primeiro pelo menos uma volta.",
                 subject: "Objeto",
-                noLaps: "Ainda sem voltas — prima INICIAR e depois VOLTA em cada ponto do ciclo."
+                noLaps: "Ainda sem voltas — prima INICIAR e depois VOLTA em cada ponto do ciclo.",
+                exportCsv: "Exportar CSV",
+                importCsv: "Importar CSV",
+                impTitle: "Já existe",
+                impText: "«{name}» já existe na aplicação. O que fazer com os dados importados?",
+                impOw: "Substituir",
+                impOwD: "Substituir os dados existentes pelo conteúdo do ficheiro",
+                impAp: "Adicionar registos em falta",
+                impApD: "Manter os dados existentes e adicionar apenas os registos novos",
+                impCp: "Criar uma cópia",
+                impCpD: "Importar como um item novo e separado",
+                copySuffix: "cópia",
+                impOk: "Importado: {name} ({n} registos)",
+                impErr: "Não foi possível ler o ficheiro como exportação CSV do TimeMaster.",
+                impNoRows: "Nenhum registo válido encontrado no ficheiro.",
+                statistics: "Estatísticas",
+                note: "Nota",
+                created: "Criado",
+                exportXlsx: "Excel",
+                importCsv: "Importar CSV / Excel",
+                exportCsv: "CSV",
+                shReport: "Relatório",
+                shLegend: "Legenda",
+                tableColor: "Cor",
+                lgTitle: "Legenda – colunas da tabela de detalhe",
+                lgNo: "Coluna",
+                lgCol: "Cabeçalho",
+                lgExample: "Exemplo (linha 1)",
+                lgMeaning: "Significado",
+                lgPurpose: "Utilização",
+                lgNoteSw: "Para importar bastam as colunas # e Volta. A volta pode ser escrita como 00:12.47, 0:12.47 ou 12.47 (segundos). Tudo o resto é recalculado.",
+                lgNoteStudy: "Para importar bastam as colunas #, Categoria e Duração. A duração pode ser escrita como 00:04.3, 0:04.3 ou 4.3 (segundos).",
+                lgHowTo: "Continuar uma medição: na aplicação Importar CSV / Excel → a medição abre → premir INICIAR.",
+                xlsxErr: "Não foi possível carregar a biblioteca do Excel (é necessária internet na primeira utilização)."
             }
         };
 
@@ -1029,8 +1240,17 @@
             if (!document.getElementById('sw-report').classList.contains('hidden')) showSwReport();
         }
 
+        // Exports (CSV / Excel) are always written in this language, whatever the UI language is.
+        // Import stays language-independent (recognises headers in all 5 languages).
+        const EXPORT_LANG = 'en';
+        let forceLang = null;
         function t(key) {
-            return (translations[currentLang] || translations['en'])[key] ?? translations['en'][key] ?? key;
+            const L = forceLang || currentLang;
+            return (translations[L] || translations['en'])[key] ?? translations['en'][key] ?? key;
+        }
+        async function inExportLang(fn) {
+            forceLang = EXPORT_LANG;
+            try { return await fn(); } finally { forceLang = null; }
         }
 
         function applyTranslations() {
@@ -1093,6 +1313,15 @@
             document.getElementById('meas-name').placeholder = t('measNamePh');
             document.getElementById('meas-subject').placeholder = t('measSubjectPh');
             document.getElementById('btn-edit-meas').title = t('editMeas');
+
+            document.querySelectorAll('.txt-import-csv').forEach(el => el.innerText = t('importCsv'));
+            document.querySelectorAll('.txt-export-csv').forEach(el => el.innerText = t('exportCsv'));
+            document.querySelectorAll('.btn-csv').forEach(el => el.title = 'CSV');
+            document.querySelectorAll('.txt-export-xlsx').forEach(el => el.innerText = t('exportXlsx'));
+            document.querySelectorAll('.btn-xlsx').forEach(el => el.title = 'Excel (.xlsx)');
+            set('imp-title', 'impTitle'); set('imp-ow', 'impOw'); set('imp-ow-d', 'impOwD');
+            set('imp-ap', 'impAp'); set('imp-ap-d', 'impApD'); set('imp-cp', 'impCp'); set('imp-cp-d', 'impCpD');
+            set('imp-cancel', 'modalCancel');
 
             updateHeaderForView();
 
@@ -2048,38 +2277,8 @@
             ].join('');
 
             // Chart
-            const labels = m.laps.map((_, i) => String(i + 1));
-            const data = m.laps.map(l => l.ms / 1000);
-            const colors = m.laps.map((l, i) =>
-                (st.n >= 2 && i === st.maxIdx) ? C_MAX : (st.n >= 2 && i === st.minIdx) ? C_MIN : l.ms > st.avg ? C_ABOVE : C_BELOW);
-            const avgLine = m.laps.map(() => st.avg / 1000);
-            const trendLine = m.laps.map((_, i) => (st.intercept + st.slope * (i + 1)) / 1000);
-
             if (lapChart) lapChart.destroy();
-            lapChart = new Chart(document.getElementById('chart-laps').getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels,
-                    datasets: [
-                        { type: 'bar', label: t('lapChart'), data, backgroundColor: colors, borderRadius: 4, maxBarThickness: 48, order: 3 },
-                        { type: 'line', label: t('avgLine'), data: avgLine, borderColor: C_AVG, borderWidth: 2, borderDash: [6, 4], pointRadius: 0, order: 1 },
-                        { type: 'line', label: t('trendLine'), data: trendLine, borderColor: C_TREND, borderWidth: 2.5, pointRadius: 0, order: 2, hidden: st.n < 2 }
-                    ]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false, animation: false,
-                    layout: { padding: { top: 30 } },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${fmtSw2(c.parsed.y * 1000)}` } }
-                    },
-                    scales: {
-                        x: { grid: { display: false }, title: { display: true, text: t('lapWord'), font: { weight: 'bold', size: 11 } } },
-                        y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { callback: v => fmtSw2(v * 1000) } }
-                    }
-                },
-                plugins: [extremeLabelPlugin, whiteBgPlugin]
-            });
+            lapChart = new Chart(document.getElementById('chart-laps').getContext('2d'), lapChartConfig(m, st, true));
             lapChart.$swStats = st;
             lapChart.update();
 
@@ -2113,6 +2312,41 @@
                 </tr>`;
             }).join('');
             stopSwTicker();
+        }
+
+        // Shared by the on-screen report and the Excel export (offscreen render)
+        function lapChartConfig(m, st, responsive) {
+            const labels = m.laps.map((_, i) => String(i + 1));
+            const data = m.laps.map(l => l.ms / 1000);
+            const colors = m.laps.map((l, i) =>
+                (st.n >= 2 && i === st.maxIdx) ? C_MAX : (st.n >= 2 && i === st.minIdx) ? C_MIN : l.ms > st.avg ? C_ABOVE : C_BELOW);
+            const avgLine = m.laps.map(() => st.avg / 1000);
+            const trendLine = m.laps.map((_, i) => (st.intercept + st.slope * (i + 1)) / 1000);
+            return {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [
+                        { type: 'bar', label: t('lapChart'), data, backgroundColor: colors, borderRadius: 4, maxBarThickness: 48, order: 3 },
+                        { type: 'line', label: t('avgLine'), data: avgLine, borderColor: C_AVG, borderWidth: 2, borderDash: [6, 4], pointRadius: 0, order: 1 },
+                        { type: 'line', label: t('trendLine'), data: trendLine, borderColor: C_TREND, borderWidth: 2.5, pointRadius: 0, order: 2, hidden: st.n < 2 }
+                    ]
+                },
+                options: {
+                    responsive, maintainAspectRatio: false, animation: false,
+                    devicePixelRatio: responsive ? undefined : 1,
+                    layout: { padding: { top: 30, right: 10 } },
+                    plugins: {
+                        legend: { display: !responsive, position: 'bottom', labels: { boxWidth: 14 } },
+                        tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${fmtSw2(c.parsed.y * 1000)}` } }
+                    },
+                    scales: {
+                        x: { grid: { display: false }, title: { display: true, text: t('lapWord'), font: { weight: 'bold', size: 11 } } },
+                        y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { callback: v => fmtSw2(v * 1000) } }
+                    }
+                },
+                plugins: [extremeLabelPlugin, whiteBgPlugin]
+            };
         }
 
         function closeSwReport(silent) {
@@ -2204,6 +2438,599 @@
 
             const fname = [m.name, m.subject].filter(Boolean).join('_').replace(/[^\p{L}\p{N}_-]+/gu, '_');
             doc.save(`${fname}_Stopwatch_Report.pdf`);
+        }
+
+        // ═════════════════════════ CSV EXPORT / IMPORT ═════════════════════════
+        // Format: UTF-8 with BOM, ';' separator, decimal comma for seconds.
+        // Line 1 identifies the file; '#' lines carry metadata; then a header row + data rows.
+        // Import reads the [ms] column (exact); falls back to [s] or the mm:ss text column.
+        const CSV_SEP = ';';
+
+        function csvCell(v) {
+            const s = String(v ?? '');
+            return /[;"\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+        }
+        function csvLine(arr) { return arr.map(csvCell).join(CSV_SEP); }
+        function secComma(ms) { return (ms / 1000).toFixed(3).replace('.', ','); }
+        function fileStamp() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+        function safeName(s) { return String(s || 'export').replace(/[^\p{L}\p{N}_-]+/gu, '_').replace(/^_+|_+$/g, ''); }
+
+        function downloadCSV(lines, fname) {
+            const blob = new Blob(['﻿' + lines.join('\r\n') + '\r\n'], { type: 'text/csv;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob); a.download = fname;
+            document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+        }
+
+        // CSV mirrors the on-screen report: header → statistics/summary → detail table.
+        // Machine-readable '#' lines go at the end (needed for re-import).
+        function exportSwCSV() { return inExportLang(() => exportSwCSVImpl()); }
+        function exportSwCSVImpl() {
+            const m = activeMeas(); if (!m || !m.laps.length) return alert(t('needLaps'));
+            const st = swStats(m.laps);
+            const lines = [
+                csvLine([`TimeMaster Pro – ${t('modeSw')} – ${t('report')}`]),
+                csvLine([t('measName'), m.name]),
+                csvLine([t('subject'), m.subject || '']),
+                csvLine([t('created'), new Date(m.created).toLocaleString('en-US')]),
+                csvLine([t('genAt'), new Date().toLocaleString('en-US')]),
+                '',
+                csvLine([t('statistics').toUpperCase(), '', '[s]']),
+                csvLine([t('avg'), fmtSw2(st.avg), secComma(st.avg)]),
+                csvLine([t('max'), fmtSw2(st.max), secComma(st.max), `${t('lapWord')} ${st.maxIdx + 1}`]),
+                csvLine([t('min'), fmtSw2(st.min), secComma(st.min), `${t('lapWord')} ${st.minIdx + 1}`]),
+                csvLine([t('lapsCount'), st.n]),
+                csvLine([t('total'), fmtSw2(st.sum), secComma(st.sum)]),
+                csvLine([t('stdDev'), fmtSw2(st.sd), secComma(st.sd)]),
+                csvLine([t('cv'), st.cv.toFixed(1).replace('.', ',') + ' %']),
+                csvLine([t('trend'), trendText(st), secComma(st.slope)]),
+                '',
+                csvLine([t('lapTable').toUpperCase()]),
+                csvLine(['#', t('lapWord'), t('lapWord') + ' [s]', t('deltaAvg') + ' [s]', '%', t('split'), t('clockTime'), t('note'), 'Timestamp', 'ms'])
+            ];
+            let cum = 0;
+            m.laps.forEach((l, i) => {
+                cum += l.ms;
+                const d = l.ms - st.avg;
+                const note = st.n >= 2 ? (i === st.maxIdx ? 'MAX' : i === st.minIdx ? 'MIN' : '') : '';
+                lines.push(csvLine([i + 1, fmtSw2(l.ms), secComma(l.ms), (d >= 0 ? '+' : '') + secComma(d), (d >= 0 ? '+' : '') + (d / st.avg * 100).toFixed(1).replace('.', ','),
+                    fmtSw2(cum), new Date(l.at).toLocaleTimeString('sk-SK'), note, new Date(l.at).toISOString(), l.ms]));
+            });
+            lines.push('', csvLine(['#TimeMasterPro', 'stopwatch', APP_VERSION]),
+                csvLine(['#id', m.id]), csvLine(['#name', m.name]), csvLine(['#subject', m.subject || '']), csvLine(['#created', m.created]));
+            downloadCSV(lines, `${safeName([m.name, m.subject].filter(Boolean).join('_'))}_${fileStamp()}.csv`);
+        }
+
+        function exportStudyCSV() { return inExportLang(() => exportStudyCSVImpl()); }
+        function exportStudyCSVImpl() {
+            const p = projects.find(x => x.id === activeProjectId); if (!p || !p.laps.length) return alert(t('needRecord'));
+            const { dataMap, totalMs } = categoryStats(p);
+            const n = p.laps.length;
+            const lines = [
+                csvLine([`TimeMaster Pro – ${t('modeStudy')} – ${t('report')}`]),
+                csvLine([t('modalName'), p.name]),
+                csvLine([t('modalDesc').replace(/\.+$/, ''), p.desc || '']),
+                csvLine([t('genAt'), new Date().toLocaleString('en-US')]),
+                '',
+                csvLine([t('catSummary').toUpperCase()]),
+                csvLine([t('tableCat'), t('count'), t('avgDur'), t('avgDur') + ' [s]', t('totalDur'), t('totalDur') + ' [s]', t('share') + ' %'])
+            ];
+            Object.entries(dataMap).forEach(([cat, d]) => lines.push(csvLine([cat, d.count, formatTime(d.avg), secComma(d.avg), formatTime(d.time), secComma(d.time), (d.time / totalMs * 100).toFixed(1).replace('.', ',')])));
+            lines.push(csvLine([t('total'), n, formatTime(totalMs / n), secComma(totalMs / n), formatTime(totalMs), secComma(totalMs), '100,0']));
+            lines.push('', csvLine([t('history').toUpperCase()]),
+                csvLine(['#', t('tableDate'), t('tableTime'), t('tableCat'), t('tableDur'), t('tableDur') + ' [s]', 'Color', 'ID', 'ms']));
+            p.laps.forEach((l, i) => lines.push(csvLine([i + 1, l.date, l.timestamp, l.category, l.timeFormatted, secComma(l.time), l.color, l.id, Math.round(l.time)])));
+            lines.push('', csvLine(['#TimeMasterPro', 'study', APP_VERSION]),
+                csvLine(['#id', p.id]), csvLine(['#name', p.name]), csvLine(['#desc', p.desc || '']));
+            p.categories.forEach(c => lines.push(csvLine(['#category', c.name, c.color])));
+            downloadCSV(lines, `${safeName(p.name)}_${fileStamp()}.csv`);
+        }
+
+
+        // ═════════════════════════ EXCEL (.xlsx) EXPORT / IMPORT ═════════════════════════
+        // Sheet "Report" mirrors the on-screen report (header, statistics, chart image, detail table),
+        // sheet "Legend" explains every column, hidden sheet "TM_meta" carries data for re-import.
+        const LEGEND = {"sw": {"en": [["Lap number", "Required for import"], ["Lap time (mm:ss.cc), stored as an Excel time", "Required for import; reading and calculations"], ["Lap time in seconds", "Calculations, Excel charts"], ["Deviation from the average; negative = faster than average", "Analysis"], ["Deviation in % of the average", "Analysis"], ["Sum of all laps from the start", "Reading"], ["Time of day when the lap ended (local time)", "Reading"], ["MAX / MIN = longest / shortest lap", "Replaces the report colours"], ["Moment the lap ended, ISO 8601 in UTC (Z)", "Optional for import – keeps date/time, recognises duplicate laps"], ["Exact lap time in milliseconds", "Optional for import – full precision"]], "de": [["Rundennummer", "Pflicht für den Import"], ["Rundenzeit (mm:ss.cc), in Excel als Zeit gespeichert", "Pflicht für den Import; Lesen und Rechnen"], ["Rundenzeit in Sekunden", "Berechnungen, Excel-Diagramme"], ["Abweichung vom Durchschnitt; negativ = schneller als Ø", "Analyse"], ["Abweichung in % des Durchschnitts", "Analyse"], ["Summe aller Runden seit Beginn", "Lesen"], ["Uhrzeit des Rundenendes (Ortszeit)", "Lesen"], ["MAX / MIN = längste / kürzeste Runde", "Ersetzt die Farben des Berichts"], ["Zeitpunkt des Rundenendes, ISO 8601 in UTC (Z)", "Optional für den Import – behält Datum/Zeit, erkennt doppelte Runden"], ["Exakte Rundenzeit in Millisekunden", "Optional für den Import – volle Genauigkeit"]], "sk": [["Poradové číslo kola", "Povinné pre import"], ["Čas kola (mm:ss.cc), v Exceli uložený ako čas", "Povinné pre import; čítanie aj výpočty"], ["Čas kola v sekundách", "Výpočty, grafy v Exceli"], ["Odchýlka od priemeru; záporná = rýchlejšie ako priemer", "Analýza"], ["Odchýlka v percentách priemeru", "Analýza"], ["Súčet všetkých kôl od začiatku merania", "Čítanie"], ["Hodina ukončenia kola (miestny čas)", "Čítanie"], ["MAX / MIN = najdlhšie / najkratšie kolo", "Náhrada farieb z reportu"], ["Okamih ukončenia kola, ISO 8601 v UTC (Z)", "Voliteľné pre import – zachová dátum a čas, rozpozná duplicitné kolá"], ["Presný čas kola v milisekundách", "Voliteľné pre import – plná presnosť"]], "es": [["Número de vuelta", "Obligatorio para importar"], ["Tiempo de vuelta (mm:ss.cc), guardado como hora de Excel", "Obligatorio para importar; lectura y cálculos"], ["Tiempo de vuelta en segundos", "Cálculos, gráficos de Excel"], ["Desviación respecto a la media; negativa = más rápido que la media", "Análisis"], ["Desviación en % de la media", "Análisis"], ["Suma de todas las vueltas desde el inicio", "Lectura"], ["Hora en que terminó la vuelta (hora local)", "Lectura"], ["MAX / MIN = vuelta más larga / más corta", "Sustituye los colores del informe"], ["Momento en que terminó la vuelta, ISO 8601 en UTC (Z)", "Opcional para importar – conserva fecha/hora, detecta vueltas duplicadas"], ["Tiempo exacto de vuelta en milisegundos", "Opcional para importar – precisión completa"]], "pt": [["Número da volta", "Obrigatório para importar"], ["Tempo da volta (mm:ss.cc), guardado como hora do Excel", "Obrigatório para importar; leitura e cálculos"], ["Tempo da volta em segundos", "Cálculos, gráficos do Excel"], ["Desvio em relação à média; negativo = mais rápido que a média", "Análise"], ["Desvio em % da média", "Análise"], ["Soma de todas as voltas desde o início", "Leitura"], ["Hora em que a volta terminou (hora local)", "Leitura"], ["MAX / MIN = volta mais longa / mais curta", "Substitui as cores do relatório"], ["Momento em que a volta terminou, ISO 8601 em UTC (Z)", "Opcional para importar – mantém data/hora, deteta voltas duplicadas"], ["Tempo exato da volta em milissegundos", "Opcional para importar – precisão total"]]}, "study": {"en": [["Record number", "Required for import"], ["Date of the record", "Reading"], ["Time the activity ended", "Reading"], ["Category (activity) name", "Required for import"], ["Duration (mm:ss.d), stored as an Excel time", "Required for import; reading and calculations"], ["Duration in seconds", "Calculations"], ["Category colour (HEX)", "Optional – colour in charts"], ["Internal record ID", "Optional – recognises duplicates on import"], ["Exact duration in milliseconds", "Optional – full precision"]], "de": [["Eintragsnummer", "Pflicht für den Import"], ["Datum des Eintrags", "Lesen"], ["Uhrzeit des Tätigkeitsendes", "Lesen"], ["Name der Kategorie (Tätigkeit)", "Pflicht für den Import"], ["Dauer (mm:ss.d), in Excel als Zeit gespeichert", "Pflicht für den Import; Lesen und Rechnen"], ["Dauer in Sekunden", "Berechnungen"], ["Farbe der Kategorie (HEX)", "Optional – Farbe in Diagrammen"], ["Interne Eintrags-ID", "Optional – erkennt Duplikate beim Import"], ["Exakte Dauer in Millisekunden", "Optional – volle Genauigkeit"]], "sk": [["Poradové číslo záznamu", "Povinné pre import"], ["Dátum záznamu", "Čítanie"], ["Čas ukončenia činnosti", "Čítanie"], ["Názov kategórie (činnosti)", "Povinné pre import"], ["Trvanie (mm:ss.d), v Exceli uložené ako čas", "Povinné pre import; čítanie aj výpočty"], ["Trvanie v sekundách", "Výpočty"], ["Farba kategórie (HEX)", "Voliteľné – farba v grafoch"], ["Interné ID záznamu", "Voliteľné – rozpozná duplicity pri importe"], ["Presné trvanie v milisekundách", "Voliteľné – plná presnosť"]], "es": [["Número de registro", "Obligatorio para importar"], ["Fecha del registro", "Lectura"], ["Hora en que terminó la actividad", "Lectura"], ["Nombre de la categoría (actividad)", "Obligatorio para importar"], ["Duración (mm:ss.d), guardada como hora de Excel", "Obligatorio para importar; lectura y cálculos"], ["Duración en segundos", "Cálculos"], ["Color de la categoría (HEX)", "Opcional – color en los gráficos"], ["ID interno del registro", "Opcional – detecta duplicados al importar"], ["Duración exacta en milisegundos", "Opcional – precisión completa"]], "pt": [["Número do registo", "Obrigatório para importar"], ["Data do registo", "Leitura"], ["Hora em que a atividade terminou", "Leitura"], ["Nome da categoria (atividade)", "Obrigatório para importar"], ["Duração (mm:ss.d), guardada como hora do Excel", "Obrigatório para importar; leitura e cálculos"], ["Duração em segundos", "Cálculos"], ["Cor da categoria (HEX)", "Opcional – cor nos gráficos"], ["ID interno do registo", "Opcional – deteta duplicados ao importar"], ["Duração exata em milissegundos", "Opcional – precisão total"]]}};
+
+        let excelJsPromise = null;
+        function loadExcelJS() {
+            if (window.ExcelJS) return Promise.resolve(window.ExcelJS);
+            if (!excelJsPromise) {
+                excelJsPromise = new Promise((resolve, reject) => {
+                    const sc = document.createElement('script');
+                    sc.src = EXCELJS_URL;
+                    sc.onload = () => resolve(window.ExcelJS);
+                    sc.onerror = () => { excelJsPromise = null; reject(new Error('exceljs')); };
+                    document.head.appendChild(sc);
+                });
+            }
+            return excelJsPromise;
+        }
+
+        const XL = {
+            dur2: '[mm]:ss.00', dur1: '[mm]:ss.0', clock: 'hh:mm:ss', sec: '0.00', sec3: '0.000',
+            dsec: '+0.00;-0.00;0.00', dpct: '+0.0%;-0.0%;0.0%', pct: '0.0%',
+            head: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2E8F0' } },
+            dark: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F172A' } }
+        };
+        const msToDays = ms => ms / 86400000;
+        const argb = hex => 'FF' + String(hex || '#000000').replace('#', '').toUpperCase().padEnd(6, '0').slice(0, 6);
+        function clockDays(epoch) { const d = new Date(epoch); return (d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds()) / 86400; }
+
+        // Renders a Chart.js config on a detached canvas → PNG data URL
+        function renderChartPNG(config, w, h) {
+            const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+            const ch = new Chart(cv.getContext('2d'), config);
+            if (config.$after) config.$after(ch);
+            ch.update();
+            const url = ch.toBase64Image('image/png', 1);
+            ch.destroy();
+            return url;
+        }
+
+        function xlTitle(ws, r, text, size) {
+            const c = ws.getCell(r, 1); c.value = text; c.font = { bold: true, size: size || 12, color: { argb: 'FF0F172A' } };
+        }
+        function xlHeader(ws, r, labels) {
+            labels.forEach((h, k) => {
+                const c = ws.getCell(r, k + 1); c.value = h;
+                c.font = { bold: true, color: { argb: 'FF334155' } }; c.fill = XL.head;
+                c.alignment = { horizontal: k === 0 ? 'left' : 'center', vertical: 'middle', wrapText: true };
+                c.border = { bottom: { style: 'thin', color: { argb: 'FF94A3B8' } } };
+            });
+        }
+        function xlLegendSheet(wb, kind, headers, examples) {
+            const ws = wb.addWorksheet(t('shLegend'));
+            ws.columns = [{ width: 9 }, { width: 20 }, { width: 24 }, { width: 52 }, { width: 46 }];
+            xlTitle(ws, 1, t('lgTitle'), 14);
+            const n1 = ws.getCell('A2'); n1.value = kind === 'sw' ? t('lgNoteSw') : t('lgNoteStudy'); n1.font = { bold: true, color: { argb: 'FF047857' } };
+            const n2 = ws.getCell('A3'); n2.value = t('lgHowTo'); n2.font = { italic: true, color: { argb: 'FF64748B' } };
+            xlHeader(ws, 5, [t('lgNo'), t('lgCol'), t('lgExample'), t('lgMeaning'), t('lgPurpose')]);
+            const L = (LEGEND[kind][forceLang || currentLang] || LEGEND[kind].en);
+            headers.forEach((h, k) => {
+                const row = ws.getRow(6 + k);
+                row.values = [k + 1, h, examples[k] ?? '', L[k][0], L[k][1]];
+                row.getCell(1).alignment = { horizontal: 'center', vertical: 'top' };
+                [2, 3, 4, 5].forEach(c => row.getCell(c).alignment = { wrapText: true, vertical: 'top' });
+                row.getCell(2).font = { bold: true };
+                if (/^(Povinn|Required|Pflicht|Obligat|Obrigat)/i.test(L[k][1])) row.getCell(5).font = { bold: true, color: { argb: 'FF047857' } };
+            });
+            return ws;
+        }
+        function xlMetaSheet(wb, pairs) {
+            const ws = wb.addWorksheet('TM_meta', { state: 'hidden' });
+            pairs.forEach(p => ws.addRow(p));
+        }
+        async function xlDownload(wb, fname) {
+            // Print: every sheet fits one page wide (no columns split off onto extra pages)
+            wb.worksheets.forEach(w => { w.pageSetup = { paperSize: 9, orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0, margins: { left: 0.4, right: 0.4, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 } }; });
+            const buf = await wb.xlsx.writeBuffer();
+            const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fname;
+            document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+        }
+
+        function exportSwXLSX() { return inExportLang(() => exportSwXLSXImpl()); }
+        async function exportSwXLSXImpl() {
+            const m = activeMeas(); if (!m || !m.laps.length) return alert(t('needLaps'));
+            let ExcelJS; try { ExcelJS = await loadExcelJS(); } catch (e) { return alert(t('xlsxErr')); }
+            const st = swStats(m.laps);
+            const wb = new ExcelJS.Workbook(); wb.creator = 'TimeMaster Pro'; wb.created = new Date();
+            const ws = wb.addWorksheet(t('shReport'), { views: [{ showGridLines: false }] });
+            ws.columns = [{ width: 22 }, { width: 13 }, { width: 11 }, { width: 15 }, { width: 10 }, { width: 13 }, { width: 11 }, { width: 11 }, { width: 27 }, { width: 9 }];
+
+            xlTitle(ws, 1, `TimeMaster Pro – ${t('modeSw')} – ${t('report')}`, 16);
+            [[t('measName'), m.name], [t('subject'), m.subject || ''], [t('created'), new Date(m.created).toLocaleString('en-US')], [t('genAt'), new Date().toLocaleString('en-US')]]
+                .forEach(([k, v], i) => { const r = ws.getRow(2 + i); r.getCell(1).value = k; r.getCell(1).font = { color: { argb: 'FF64748B' } }; r.getCell(2).value = v; r.getCell(2).font = { bold: i === 0 }; });
+
+            // Statistics block
+            let r = 7;
+            xlTitle(ws, r, t('statistics').toUpperCase()); r++;
+            const stats = [
+                [t('avg'), st.avg, '', 'FF0F172A'],
+                [t('max'), st.max, `${t('lapWord')} ${st.maxIdx + 1}`, 'FFDC2626'],
+                [t('min'), st.min, `${t('lapWord')} ${st.minIdx + 1}`, 'FF059669'],
+                [t('lapsCount'), null, '', 'FF1D4ED8', st.n],
+                [t('total'), st.sum, '', 'FF0F172A'],
+                [t('stdDev'), st.sd, '', 'FF475569']
+            ];
+            stats.forEach(([lbl, ms, note, col, plain]) => {
+                const row = ws.getRow(r++);
+                row.getCell(1).value = lbl; row.getCell(1).font = { bold: true };
+                if (plain != null) { row.getCell(2).value = plain; }
+                else {
+                    row.getCell(2).value = msToDays(ms); row.getCell(2).numFmt = XL.dur2;
+                    row.getCell(3).value = ms / 1000; row.getCell(3).numFmt = XL.sec3;
+                }
+                row.getCell(2).font = { bold: true, size: 12, color: { argb: col } };
+                row.getCell(2).alignment = { horizontal: 'right' };
+                if (note) row.getCell(4).value = note;
+            });
+            let row = ws.getRow(r++); row.getCell(1).value = t('cv'); row.getCell(1).font = { bold: true };
+            row.getCell(2).value = st.cv / 100; row.getCell(2).numFmt = XL.pct; row.getCell(2).font = { bold: true, size: 12 };
+            row = ws.getRow(r++); row.getCell(1).value = t('trend'); row.getCell(1).font = { bold: true };
+            row.getCell(2).value = st.slope / 1000; row.getCell(2).numFmt = XL.dsec; row.getCell(2).font = { bold: true, size: 12 };
+            row.getCell(3).value = trendText(st);
+            ws.getCell(7, 3).value = '[s]'; ws.getCell(7, 3).font = { color: { argb: 'FF94A3B8' } }; ws.getCell(7, 3).alignment = { horizontal: 'right' };
+
+            // Chart image
+            r++;
+            xlTitle(ws, r, t('lapChart').toUpperCase()); r++;
+            try {
+                const cfg = lapChartConfig(m, st, false);
+                cfg.$after = ch => { ch.$swStats = st; };
+                const img = wb.addImage({ base64: renderChartPNG(cfg, 1100, 420), extension: 'png' });
+                ws.addImage(img, { tl: { col: 0, row: r - 1 }, ext: { width: 880, height: 336 } });
+            } catch (e) { }
+            r += 18;
+
+            // Detail table
+            xlTitle(ws, r, t('lapTable').toUpperCase()); r++;
+            const headers = ['#', t('lapWord'), t('lapWord') + ' [s]', t('deltaAvg') + ' [s]', '%', t('split'), t('clockTime'), t('note'), 'Timestamp', 'ms'];
+            xlHeader(ws, r, headers); r++;
+            let cum = 0;
+            m.laps.forEach((l, i) => {
+                cum += l.ms;
+                const d = l.ms - st.avg;
+                const note = st.n >= 2 ? (i === st.maxIdx ? 'MAX' : i === st.minIdx ? 'MIN' : '') : '';
+                const rr = ws.getRow(r++);
+                rr.values = [i + 1, msToDays(l.ms), l.ms / 1000, d / 1000, d / st.avg, msToDays(cum), clockDays(l.at), note, new Date(l.at).toISOString(), l.ms];
+                rr.getCell(1).alignment = { horizontal: 'left' };
+                rr.getCell(2).numFmt = XL.dur2; rr.getCell(3).numFmt = XL.sec3; rr.getCell(4).numFmt = XL.dsec;
+                rr.getCell(5).numFmt = XL.dpct; rr.getCell(6).numFmt = XL.dur2; rr.getCell(7).numFmt = XL.clock;
+                const lapCol = note === 'MAX' ? 'FFDC2626' : note === 'MIN' ? 'FF059669' : 'FF0F172A';
+                rr.getCell(2).font = { bold: true, color: { argb: lapCol } };
+                rr.getCell(8).font = { bold: true, color: { argb: lapCol } };
+                const dc = d > 0 ? 'FFDC2626' : 'FF059669';
+                rr.getCell(4).font = { color: { argb: dc } }; rr.getCell(5).font = { color: { argb: dc } };
+                [9, 10].forEach(c => rr.getCell(c).font = { color: { argb: 'FF94A3B8' } });
+                if (i % 2) for (let c = 1; c <= 10; c++) rr.getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+            });
+
+            // Legend with examples taken from lap 1, formatted as shown in the report
+            const l0 = m.laps[0], d0 = l0.ms - st.avg;
+            xlLegendSheet(wb, 'sw', headers, [
+                '1', fmtSw2(l0.ms), (l0.ms / 1000).toFixed(3), (d0 >= 0 ? '+' : '') + (d0 / 1000).toFixed(2),
+                (d0 >= 0 ? '+' : '') + (d0 / st.avg * 100).toFixed(1) + ' %', fmtSw2(l0.ms),
+                new Date(l0.at).toLocaleTimeString('sk-SK'), st.n >= 2 ? (st.maxIdx === 0 ? 'MAX' : st.minIdx === 0 ? 'MIN' : '—') : '—',
+                new Date(l0.at).toISOString(), String(l0.ms)]);
+            xlMetaSheet(wb, [['#TimeMasterPro', 'stopwatch', APP_VERSION], ['#id', m.id], ['#name', m.name], ['#subject', m.subject || ''], ['#created', m.created]]);
+            await xlDownload(wb, `${safeName([m.name, m.subject].filter(Boolean).join('_'))}_${fileStamp()}.xlsx`);
+        }
+
+        function exportStudyXLSX() { return inExportLang(() => exportStudyXLSXImpl()); }
+        async function exportStudyXLSXImpl() {
+            const p = projects.find(x => x.id === activeProjectId); if (!p || !p.laps.length) return alert(t('needRecord'));
+            let ExcelJS; try { ExcelJS = await loadExcelJS(); } catch (e) { return alert(t('xlsxErr')); }
+            const { dataMap, totalMs } = categoryStats(p);
+            const n = p.laps.length;
+            const wb = new ExcelJS.Workbook(); wb.creator = 'TimeMaster Pro'; wb.created = new Date();
+            const ws = wb.addWorksheet(t('shReport'), { views: [{ showGridLines: false }] });
+            ws.columns = [{ width: 22 }, { width: 13 }, { width: 11 }, { width: 22 }, { width: 11 }, { width: 12 }, { width: 11 }, { width: 15 }, { width: 9 }];
+
+            xlTitle(ws, 1, `TimeMaster Pro – ${t('modeStudy')} – ${t('report')}`, 16);
+            [[t('modalName'), p.name], [t('modalDesc').replace(/\.+$/, ''), p.desc || ''], [t('genAt'), new Date().toLocaleString('en-US')]]
+                .forEach(([k, v], i) => { const r = ws.getRow(2 + i); r.getCell(1).value = k; r.getCell(1).font = { color: { argb: 'FF64748B' } }; r.getCell(2).value = v; r.getCell(2).font = { bold: i === 0 }; });
+
+            let r = 6;
+            xlTitle(ws, r, t('catSummary').toUpperCase()); r++;
+            xlHeader(ws, r, [t('tableCat'), t('count'), t('avgDur'), t('avgDur') + ' [s]', t('totalDur'), t('totalDur') + ' [s]', t('share')]); r++;
+            Object.entries(dataMap).forEach(([cat, d]) => {
+                const rr = ws.getRow(r++);
+                rr.values = [cat, d.count, msToDays(d.avg), d.avg / 1000, msToDays(d.time), d.time / 1000, d.time / totalMs];
+                rr.getCell(1).font = { bold: true, color: { argb: argb(d.color) } };
+                rr.getCell(3).numFmt = XL.dur1; rr.getCell(4).numFmt = XL.sec; rr.getCell(5).numFmt = XL.dur1; rr.getCell(6).numFmt = XL.sec; rr.getCell(7).numFmt = XL.pct;
+                rr.getCell(3).font = { bold: true, color: { argb: 'FF2563EB' } };
+            });
+            const tr = ws.getRow(r++);
+            tr.values = [t('total'), n, msToDays(totalMs / n), totalMs / n / 1000, msToDays(totalMs), totalMs / 1000, 1];
+            tr.getCell(3).numFmt = XL.dur1; tr.getCell(4).numFmt = XL.sec; tr.getCell(5).numFmt = XL.dur1; tr.getCell(6).numFmt = XL.sec; tr.getCell(7).numFmt = XL.pct;
+            for (let c = 1; c <= 7; c++) { tr.getCell(c).font = { bold: true }; tr.getCell(c).border = { top: { style: 'thin', color: { argb: 'FF94A3B8' } } }; }
+
+            // Doughnut chart image
+            r++;
+            xlTitle(ws, r, t('summaryTitle').toUpperCase()); r++;
+            try {
+                const labels = Object.keys(dataMap);
+                const cfg = {
+                    type: 'doughnut',
+                    data: { labels: labels.map(l => `${l} (${(dataMap[l].time / totalMs * 100).toFixed(1)} %)`), datasets: [{ data: labels.map(l => dataMap[l].time), backgroundColor: labels.map(l => dataMap[l].color), borderWidth: 2, borderColor: '#fff' }] },
+                    options: { responsive: false, animation: false, devicePixelRatio: 1, cutout: '60%', plugins: { legend: { position: 'right', labels: { font: { size: 14 }, boxWidth: 16 } } } },
+                    plugins: [whiteBgPlugin]
+                };
+                const img = wb.addImage({ base64: renderChartPNG(cfg, 900, 380), extension: 'png' });
+                ws.addImage(img, { tl: { col: 0, row: r - 1 }, ext: { width: 650, height: 274 } });
+            } catch (e) { }
+            r += 15;
+
+            xlTitle(ws, r, t('history').toUpperCase()); r++;
+            const headers = ['#', t('tableDate'), t('tableTime'), t('tableCat'), t('tableDur'), t('tableDur') + ' [s]', t('tableColor'), 'ID', 'ms'];
+            xlHeader(ws, r, headers); r++;
+            p.laps.forEach((l, i) => {
+                const rr = ws.getRow(r++);
+                rr.values = [i + 1, l.date, l.timestamp, l.category, msToDays(l.time), l.time / 1000, l.color, String(l.id), Math.round(l.time)];
+                rr.getCell(1).alignment = { horizontal: 'left' };
+                rr.getCell(5).numFmt = XL.dur1; rr.getCell(6).numFmt = XL.sec;
+                rr.getCell(4).font = { bold: true, color: { argb: argb(l.color) } };
+                rr.getCell(7).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: argb(l.color) } };
+                rr.getCell(7).font = { color: { argb: 'FFFFFFFF' } };
+                [8, 9].forEach(c => rr.getCell(c).font = { color: { argb: 'FF94A3B8' } });
+            });
+
+            const l0 = p.laps[0];
+            xlLegendSheet(wb, 'study', headers, ['1', l0.date, l0.timestamp, l0.category, l0.timeFormatted, (l0.time / 1000).toFixed(1), l0.color, String(l0.id), String(Math.round(l0.time))]);
+            const meta = [['#TimeMasterPro', 'study', APP_VERSION], ['#id', p.id], ['#name', p.name], ['#desc', p.desc || '']];
+            p.categories.forEach(c => meta.push(['#category', c.name, c.color]));
+            xlMetaSheet(wb, meta);
+            await xlDownload(wb, `${safeName(p.name)}_${fileStamp()}.xlsx`);
+        }
+
+        // ── xlsx → rows of strings (same shape as parseCSV) ───────────────────
+        // Durations / times become "h:mm:ss.mmm", plain numbers keep '.' decimals.
+        function msToClockStr(ms) {
+            ms = Math.round(ms);
+            const h = Math.floor(ms / 3600000), m = Math.floor(ms % 3600000 / 60000), s = Math.floor(ms % 60000 / 1000), f = ms % 1000;
+            return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` + (f ? '.' + String(f).padStart(3, '0') : '');
+        }
+        function xlCellToStr(cell) {
+            let v = cell.value;
+            if (v == null) return '';
+            if (typeof v === 'object' && !(v instanceof Date)) {
+                if ('result' in v) v = v.result;
+                else if (v.richText) return v.richText.map(x => x.text).join('');
+                else if ('text' in v) return String(v.text);
+                if (v == null) return '';
+            }
+            const fmt = String(cell.numFmt || '');
+            if (v instanceof Date) {
+                const off = v.getTime() - Date.UTC(1899, 11, 30);
+                if (off >= 0 && off < 86400000 * 2) return msToClockStr(off);           // time / duration
+                return v.toLocaleDateString();
+            }
+            if (typeof v === 'number') {
+                if (/(^|[^"\\])(h|mm?:|:ss|s\b|\[m|\[h)/i.test(fmt) && !/0\.0+$/.test(fmt) && v < 2) return msToClockStr(v * 86400000);
+                return String(v);
+            }
+            return String(v);
+        }
+        async function readXlsxRows(file) {
+            const ExcelJS = await loadExcelJS();
+            const wb = new ExcelJS.Workbook();
+            await wb.xlsx.load(await file.arrayBuffer());
+            const toRows = ws => { const out = []; ws.eachRow({ includeEmpty: false }, row => { const a = []; for (let c = 1; c <= row.cellCount; c++) a.push(xlCellToStr(row.getCell(c))); out.push(a); }); return out; };
+            const meta = wb.getWorksheet('TM_meta');
+            // data sheet: the first visible sheet that has a '#' header row, else the first sheet
+            const sheets = wb.worksheets.filter(w => w.name !== 'TM_meta');
+            let dataWs = sheets.find(w => toRows(w).some(r => (r[0] || '').trim() === '#')) || sheets[0];
+            return (meta ? toRows(meta) : []).concat(dataWs ? toRows(dataWs) : []);
+        }
+
+        // Header labels in every language → column finder independent of the exporter's language
+        function labelsAll(key, extra) {
+            const set = new Set((extra || []).map(x => x.toLowerCase()));
+            Object.values(translations).forEach(tr => { if (tr[key]) set.add(String(tr[key]).toLowerCase()); });
+            return set;
+        }
+        function findCol(H, key, extra, suffix) {
+            const set = labelsAll(key, extra);
+            return H.findIndex(h => set.has(h.toLowerCase().replace(suffix || '', '').trim()) && (suffix ? h.includes(suffix) : !h.includes('[')));
+        }
+
+        // ── Parsing ─────────────────────────────────────────────────────────
+        function parseCSV(text) {
+            text = text.replace(/^﻿/, '');
+            const first = text.split(/\r?\n/).slice(0, 8).join('\n');
+            const cnt = c => (first.match(new RegExp('\\' + c, 'g')) || []).length;
+            const sep = [';', '\t', ','].sort((a, b) => cnt(b) - cnt(a))[0];
+            const rows = []; let row = [], cell = '', q = false;
+            for (let i = 0; i < text.length; i++) {
+                const ch = text[i];
+                if (q) {
+                    if (ch === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; }
+                    else cell += ch;
+                } else if (ch === '"') q = true;
+                else if (ch === sep) { row.push(cell); cell = ''; }
+                else if (ch === '\n' || ch === '\r') {
+                    if (ch === '\r' && text[i + 1] === '\n') i++;
+                    row.push(cell); rows.push(row); row = []; cell = '';
+                } else cell += ch;
+            }
+            if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+            return rows.filter(r => r.some(c => c.trim() !== ''));
+        }
+
+        // "12,47" / "12.47" / "00:12.47" / "1:02:03.4" → ms
+        function parseDurMs(v) {
+            if (v == null) return NaN;
+            const s = String(v).trim().replace(',', '.');
+            if (!s) return NaN;
+            if (s.includes(':')) {
+                const parts = s.split(':').map(Number);
+                if (parts.some(isNaN)) return NaN;
+                return Math.round(parts.reduce((a, x) => a * 60 + x, 0) * 1000);
+            }
+            const n = Number(s); return isNaN(n) ? NaN : Math.round(n * 1000);
+        }
+
+        // Works with v2.4 (report layout, '#' meta at end), v2.3 ('#' meta at top) and plain CSVs.
+        function parseTimeMaster(rows) {
+            let type = null; const meta = {}, cats = [];
+            rows.forEach(r => {
+                const c0 = (r[0] || '').trim();
+                if (c0 === '#TimeMasterPro') type = (r[1] || '').trim();
+                else if (c0.length > 1 && c0.startsWith('#')) {
+                    const k = c0.slice(1).trim();
+                    if (k === 'category') cats.push({ name: r[1], color: r[2] || '#64748b' });
+                    else meta[k] = r[1] ?? '';
+                }
+            });
+            const hIdx = rows.findIndex(r => (r[0] || '').trim() === '#');
+            if (hIdx >= 0) {
+                const header = rows[hIdx].map(h => h.trim());
+                const data = rows.slice(hIdx + 1).filter(r => /^\d+$/.test((r[0] || '').trim()));
+                return { type, meta, cats, header, data };
+            }
+            // Plain file: first row is a header unless it already looks like data ("1;00:12.47")
+            const body = rows.filter(r => !(r[0] || '').trim().startsWith('#'));
+            const firstIsData = body[0] && /^\d+$/.test((body[0][0] || '').trim()) && !isNaN(parseDurMs(body[0][1]));
+            return { type, meta, cats, header: firstIsData ? [] : (body[0] || []).map(h => h.trim()), data: firstIsData ? body : body.slice(1) };
+        }
+
+        function triggerImport() {
+            const inp = document.getElementById('csv-file-input'); inp.value = ''; inp.click();
+        }
+
+        let pendingImport = null;
+
+        async function handleImportFile(input) {
+            const file = input.files && input.files[0]; if (!file) return;
+            input.value = '';
+            let parsed;
+            try {
+                const rows = /\.xlsx$/i.test(file.name) ? await readXlsxRows(file) : parseCSV(await file.text());
+                parsed = parseTimeMaster(rows);
+            } catch (e) { return alert(/exceljs/.test(String(e && e.message)) ? t('xlsxErr') : t('impErr')); }
+            // No marker: study if a category column exists, otherwise stopwatch
+            const type = parsed.type || (findCol(parsed.header, 'tableCat', ['category', 'kategorie']) >= 0 ? 'study' : 'stopwatch');
+            const fallbackName = file.name.replace(/\.[^.]+$/, '');
+            const item = type === 'study' ? buildStudyFromCSV(parsed, fallbackName) : buildSwFromCSV(parsed, fallbackName);
+            if (!item) return;
+            const list = type === 'study' ? projects : measurements;
+            const existing = list.find(x => x.id === item.id);
+            if (existing) {
+                pendingImport = { type, item, existing };
+                document.getElementById('imp-text').innerText = t('impText').replace('{name}', existing.name);
+                document.getElementById('import-modal').classList.replace('hidden', 'flex');
+            } else {
+                finishImport(type, item);
+            }
+        }
+
+        function colIdx(header, tests) {
+            for (const test of tests) { const k = header.findIndex(h => test.test(h)); if (k >= 0) return k; }
+            return -1;
+        }
+
+        // Minimum: column # (lap number) + column Lap. ms / Timestamp are optional extras.
+        // Lap column wins; ms is used only when it agrees with Lap (rounding), so edits made in Excel count.
+        function buildSwFromCSV(P, fallbackName) {
+            const H = P.header;
+            let iLap = findCol(H, 'lapWord', ['lap', 'cycle', 'time', 'zeit', 'čas', 'cas']);
+            if (iLap < 0) iLap = H.length ? Math.min(1, H.length - 1) : 1;
+            const iMs = H.findIndex(h => /^ms$/i.test(h));
+            const iTs = H.findIndex(h => /^timestamp$/i.test(h));
+            const now = Date.now();
+            const laps = [];
+            P.data.forEach((r, k) => {
+                let ms = parseDurMs(r[iLap]);
+                if (!(ms > 0)) { // fallback: first duration-looking cell that is not the index column
+                    for (let c = 1; c < r.length; c++) { const v = parseDurMs(r[c]); if (v > 0) { ms = v; break; } }
+                }
+                if (!(ms > 0)) return;
+                const exact = iMs >= 0 ? parseInt(r[iMs], 10) : NaN;
+                if (exact > 0 && Math.abs(exact - ms) <= 10) ms = exact;
+                let at = iTs >= 0 ? Date.parse(r[iTs]) : NaN;
+                if (isNaN(at)) at = now - (P.data.length - k) * 1000;
+                laps.push({ id: at, ms, at });
+            });
+            const seen = new Set(); laps.forEach(l => { while (seen.has(l.id)) l.id++; seen.add(l.id); });
+            if (!laps.length) { alert(t('impNoRows')); return null; }
+            return {
+                id: P.meta.id || ('sw' + Date.now()),
+                name: P.meta.name || fallbackName,
+                subject: P.meta.subject || '',
+                created: P.meta.created || new Date(laps[0].at).toISOString(),
+                laps, sw: { running: false, startedAt: null, accum: 0 }
+            };
+        }
+
+        // Minimum: columns #, Category, Duration (any language). Others optional.
+        function buildStudyFromCSV(P, fallbackName) {
+            const H = P.header;
+            const iDate = findCol(H, 'tableDate', ['date']);
+            const iTime = findCol(H, 'tableTime', ['time']);
+            let iCat = findCol(H, 'tableCat', ['category', 'kategorie']);
+            if (iCat < 0) iCat = H.findIndex(h => /kateg|categ/i.test(h));
+            let iDur = findCol(H, 'tableDur', ['duration']);
+            if (iDur < 0) iDur = H.findIndex(h => /trvan|durat|dauer|dura/i.test(h) && !h.includes('['));
+            const iColor = findCol(H, 'tableColor', ['color']);
+            const iId = H.findIndex(h => /^id$/i.test(h));
+            const iMs = H.findIndex(h => /^ms$/i.test(h));
+            const cats = P.cats.filter(c => c.name).map(c => ({ name: c.name, color: c.color }));
+            const laps = []; const usedIds = new Set();
+            P.data.forEach((r, k) => {
+                let ms = iDur >= 0 ? parseDurMs(r[iDur]) : NaN;
+                const exact = iMs >= 0 ? parseInt(r[iMs], 10) : NaN;
+                if (isNaN(ms)) ms = exact;
+                else if (exact >= 0 && Math.abs(exact - ms) <= 100) ms = exact;
+                if (!(ms >= 0)) return;
+                const catName = ((iCat >= 0 ? r[iCat] : '') || '').trim() || t('catDefault');
+                const colorIn = iColor >= 0 && /^#[0-9a-f]{6}$/i.test((r[iColor] || '').trim()) ? r[iColor].trim() : null;
+                let cat = cats.find(c => c.name === catName);
+                if (!cat) { cat = { name: catName, color: colorIn || FIXED_COLORS[cats.length % FIXED_COLORS.length] }; cats.push(cat); }
+                let id = iId >= 0 ? Number(r[iId]) : NaN;
+                if (!id || usedIds.has(id)) id = Date.now() * 10 + k;
+                usedIds.add(id);
+                laps.push({
+                    id, time: ms, timeFormatted: formatTime(ms), category: cat.name,
+                    color: colorIn || cat.color,
+                    timestamp: iTime >= 0 ? (r[iTime] || '').replace(/\.\d+$/, '') : '', date: iDate >= 0 ? (r[iDate] || '') : ''
+                });
+            });
+            if (!laps.length) { alert(t('impNoRows')); return null; }
+            if (!cats.length) cats.push({ name: t('catDefault'), color: '#3b82f6' });
+            return { id: P.meta.id || Date.now().toString(), name: P.meta.name || fallbackName, desc: P.meta.desc || '', categories: cats, laps };
+        }
+
+        function resolveImport(action) {
+            document.getElementById('import-modal').classList.replace('flex', 'hidden');
+            const pi = pendingImport; pendingImport = null;
+            if (!pi || !action) return;
+            const { type, item, existing } = pi;
+            if (action === 'overwrite') {
+                if (type === 'study') { existing.name = item.name; existing.desc = item.desc; existing.categories = item.categories; existing.laps = item.laps; }
+                else { existing.name = item.name; existing.subject = item.subject; existing.laps = item.laps; existing.sw = { running: false, startedAt: null, accum: 0 }; }
+                finishImport(type, existing, true);
+            } else if (action === 'append') {
+                const ids = new Set(existing.laps.map(l => l.id));
+                const add = item.laps.filter(l => !ids.has(l.id));
+                if (type === 'study') {
+                    item.categories.forEach(c => { if (!existing.categories.find(x => x.name === c.name)) existing.categories.push(c); });
+                    existing.laps = existing.laps.concat(add);
+                } else {
+                    existing.laps = existing.laps.concat(add).sort((a, b) => a.at - b.at);
+                }
+                finishImport(type, existing, true);
+            } else if (action === 'copy') {
+                item.id = type === 'study' ? Date.now().toString() : 'sw' + Date.now();
+                item.name = `${item.name} (${t('copySuffix')})`;
+                finishImport(type, item);
+            }
+        }
+
+        function finishImport(type, item, alreadyInList) {
+            if (type === 'study') {
+                if (!alreadyInList) projects.push(item);
+                saveData(); showView('study'); renderProjectList(); setActiveProject(item.id);
+            } else {
+                if (!alreadyInList) measurements.unshift(item);
+                saveSw(); showView('sw'); setActiveMeas(item.id);
+            }
+            renderHome();
+            showToast(t('impOk').replace('{name}', item.name).replace('{n}', item.laps.length));
+        }
+
+        function showToast(msg) {
+            let el = document.getElementById('tm-toast');
+            if (!el) {
+                el = document.createElement('div'); el.id = 'tm-toast';
+                el.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs font-bold px-5 py-3 rounded-xl shadow-2xl z-[60] transition-opacity';
+                document.body.appendChild(el);
+            }
+            el.innerText = msg; el.style.opacity = '1';
+            clearTimeout(el._t); el._t = setTimeout(() => el.style.opacity = '0', 3000);
         }
 
         // Keep the display honest when the tab comes back from background
